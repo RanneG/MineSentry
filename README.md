@@ -98,7 +98,7 @@ graph TB
    - API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
 
-For detailed setup instructions, see [QUICKSTART.md](QUICKSTART.md).
+For detailed setup instructions, see [QUICKSTART.md](docs/setup/QUICKSTART.md).
 
 ## 🔬 Detection Methods
 
@@ -245,8 +245,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For questions, issues, or contributions:
 - Open an issue on GitHub
-- Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- Review [QUICKSTART.md](QUICKSTART.md)
+- Check [TROUBLESHOOTING.md](docs/guides/TROUBLESHOOTING.md)
+- Review [QUICKSTART.md](docs/setup/QUICKSTART.md)
 
 ---
 

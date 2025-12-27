@@ -285,6 +285,6 @@ if is_valid:
 ## See Also
 
 - [spells/README.md](README.md) - General spells documentation
-- [CHARMS_INTEGRATION.md](../CHARMS_INTEGRATION.md) - Charms integration guide
+- [CHARMS_INTEGRATION.md](../docs/guides/CHARMS_INTEGRATION.md) - Charms integration guide
 - [reward_system.py](../reward_system.py) - Reward system implementation
 
