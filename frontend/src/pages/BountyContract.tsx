@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { toast } from '@/components/ui/Toaster'
 import { useWalletStore } from '@/store/walletStore'
 import { useDemoMode } from '@/contexts/DemoModeContext'
-import { mockBountyContract } from '@/api/mockApi'
+import { mockBountyContract, getMockBountyPayments } from '@/api/mockApi'
 import BountyContractSetup from '@/components/BountyContractSetup'
 
 export default function BountyContract() {
@@ -25,10 +25,12 @@ export default function BountyContract() {
   const { data: paymentQueue, isLoading: queueLoading } = useQuery({
     queryKey: ['bountyPayments', isDemoMode],
     queryFn: () => {
-      if (isDemoMode) return Promise.resolve([])
+      if (isDemoMode) {
+        return Promise.resolve(getMockBountyPayments())
+      }
       return apiClient.getBountyPaymentQueue()
     },
-    enabled: !!contractStatus, // Only fetch if contract is configured
+    enabled: !!contractStatus || isDemoMode, // Fetch if contract is configured or in demo mode
   })
 
   const approveMutation = useMutation({

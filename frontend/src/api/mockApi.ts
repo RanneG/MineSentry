@@ -106,17 +106,17 @@ export const mockBountyContract: BountyContract = {
   contract_id: 'demo-contract-001',
   state: 'active',
   total_funded_sats: 1000000,
-  total_paid_sats: 75000,
-  total_reserved_sats: 150000,
-  available_funds_sats: 775000,
+  total_paid_sats: 25000, // Only the 'paid' payment (demo-payment-004)
+  total_reserved_sats: 220000, // Sum of pending + approved payments (50000 + 35000 + 75000 + 60000)
+  available_funds_sats: 755000, // 1000000 - 25000 - 220000
   min_signatures: 2,
   authorized_signers: [
     'tb1qsigner1111111111abcdefghijklmnopqrstuv',
     'tb1qsigner2222222222abcdefghijklmnopqrstuv',
     'tb1qsigner3333333333abcdefghijklmnopqrstuv',
   ],
-  pending_payments: 1,
-  total_payments: 1,
+  pending_payments: 3, // 3 pending payments (demo-payment-001, 003, 005)
+  total_payments: 5, // Total of 5 mock payments
 }
 
 // Mock API functions
@@ -211,4 +211,72 @@ export const mockLeaderboard: LeaderboardEntry[] = [
 
 export function getMockLeaderboard(): LeaderboardEntry[] {
   return [...mockLeaderboard]
+}
+
+// Mock Bounty Payments
+export const mockBountyPayments: BountyPayment[] = [
+  {
+    payment_id: 'demo-payment-001',
+    report_id: 'demo-report-001',
+    recipient_address: 'tb1qreporter1234567890abcdefghijklmnopqrstu',
+    amount_sats: 50000,
+    amount_btc: 0.0005,
+    status: 'pending',
+    approvers: [],
+    approvals: '',
+    created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+  },
+  {
+    payment_id: 'demo-payment-002',
+    report_id: 'demo-report-002',
+    recipient_address: 'tb1qreporter234567890abcdefghijklmnopqrstuvw',
+    amount_sats: 35000,
+    amount_btc: 0.00035,
+    status: 'approved',
+    approvers: ['tb1qsigner1234567890abcdefghijklmnopqrstuvwx'],
+    approvals: '1/2',
+    created_at: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+    approved_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+  },
+  {
+    payment_id: 'demo-payment-003',
+    report_id: 'demo-report-003',
+    recipient_address: 'tb1qreporter34567890abcdefghijklmnopqrstuvwxy',
+    amount_sats: 75000,
+    amount_btc: 0.00075,
+    status: 'pending',
+    approvers: ['tb1qsigner1234567890abcdefghijklmnopqrstuvwx'],
+    approvals: '1/2',
+    created_at: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
+  },
+  {
+    payment_id: 'demo-payment-004',
+    report_id: 'demo-report-004',
+    recipient_address: 'tb1qreporter4567890abcdefghijklmnopqrstuvwxyz0',
+    amount_sats: 25000,
+    amount_btc: 0.00025,
+    status: 'paid',
+    approvers: [
+      'tb1qsigner1234567890abcdefghijklmnopqrstuvwx',
+      'tb1qsigner234567890abcdefghijklmnopqrstuvwxy',
+    ],
+    approvals: '2/2',
+    created_at: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+    approved_at: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
+  },
+  {
+    payment_id: 'demo-payment-005',
+    report_id: 'demo-report-005',
+    recipient_address: 'tb1qreporter567890abcdefghijklmnopqrstuvwxyz01',
+    amount_sats: 60000,
+    amount_btc: 0.0006,
+    status: 'pending',
+    approvers: [],
+    approvals: '',
+    created_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+  },
+]
+
+export function getMockBountyPayments(): BountyPayment[] {
+  return [...mockBountyPayments]
 }
