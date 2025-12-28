@@ -53,6 +53,8 @@ export interface BountyContract {
     amount_sats: number
     txid: string
   }>
+  created_at?: string
+  updated_at?: string
 }
 
 export interface BountyPayment {

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { TrendingUp, ExternalLink, Shield } from 'lucide-react'
+import { TrendingUp, ExternalLink, Shield, Clock } from 'lucide-react'
 import { apiClient } from '@/api/client'
-import { format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { useDemoMode } from '@/contexts/DemoModeContext'
 import { mockBountyContract } from '@/api/mockApi'
+import InfoTooltip from '@/components/InfoTooltip'
 
 // Helper function to get block explorer URL
 function getBlockExplorerUrl(addressOrTxid: string, network?: string): string {
@@ -100,6 +101,12 @@ export default function BountyContract() {
             <p className="text-text-muted text-xs mt-1">
               {contractStatus.balance_sats?.toLocaleString() || contractStatus.available_funds_sats.toLocaleString()} sats
             </p>
+            <div className="flex items-center gap-1 mt-2">
+              <Clock size={12} className="text-text-muted" />
+              <p className="text-text-muted text-xs">
+                Updated {formatDistanceToNow(new Date(contractStatus.updated_at || contractStatus.created_at || new Date().toISOString()), { addSuffix: true })}
+              </p>
+            </div>
           </div>
           <div>
             <p className="text-text-secondary text-sm mb-2">Network</p>
@@ -167,7 +174,10 @@ export default function BountyContract() {
             </p>
           </div>
           <div>
-            <p className="text-text-secondary text-sm mb-1">Pending Payments</p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-text-secondary text-sm">Pending Payments</p>
+              <InfoTooltip text="Reports that have been validated by the community and are now waiting for the required signatures from authorized signers to be paid out." />
+            </div>
             <p className="text-2xl font-bold text-text">{contractStatus.pending_payments}</p>
           </div>
         </div>
