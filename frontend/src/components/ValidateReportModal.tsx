@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { X, CheckCircle, XCircle, Bitcoin, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, CheckCircle, XCircle, Bitcoin, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { toast } from './ui/Toaster'
 import { useWalletStore } from '@/store/walletStore'
 import { useDemoMode } from '@/contexts/DemoModeContext'
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/api/client'
 import InfoTooltip from './InfoTooltip'
 import type { MiningPoolReport } from '@/types'
 
@@ -29,6 +31,14 @@ export default function ValidateReportModal({
 
   // In demo mode, consider wallet as connected
   const effectiveConnected = isDemoMode || connected
+
+  // Fetch detection results (confidence score and evidence)
+  const { data: detectionResults, isLoading: detectionLoading } = useQuery({
+    queryKey: ['report-confidence', report.report_id],
+    queryFn: () => apiClient.getReportConfidence(report.report_id),
+    enabled: isOpen, // Only fetch when modal is open
+    retry: 1,
+  })
 
   if (!isOpen) return null
 
@@ -145,6 +155,85 @@ export default function ValidateReportModal({
 
           {evidenceExpanded && (
             <div className="mt-3 space-y-3">
+              {/* Detection Results / Confidence Score */}
+              {detectionLoading ? (
+                <div className="bg-surface-light p-4 rounded-lg text-center">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                  <p className="text-text-secondary text-sm">Loading detection results...</p>
+                </div>
+              ) : detectionResults ? (
+                <div className="bg-surface-light p-3 rounded-lg space-y-3">
+                  {!(detectionResults as any).error && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-text-secondary text-xs">Detection Confidence</p>
+                      <p className={`text-lg font-bold ${
+                        detectionResults.confidence_score >= 0.7 ? 'text-green-400' :
+                        detectionResults.confidence_score >= 0.4 ? 'text-yellow-400' :
+                        'text-red-400'
+                      }`}>
+                        {(detectionResults.confidence_score * 100).toFixed(1)}%
+                      </p>
+                    </div>
+                  )}
+                  
+                  {!(detectionResults as any).error && detectionResults.detection_methods && detectionResults.detection_methods.length > 0 && (
+                    <div>
+                      <p className="text-text-secondary text-xs mb-2">
+                        Detection Methods Triggered ({detectionResults.detection_methods.length})
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {detectionResults.detection_methods.map((method, index) => (
+                          <span key={index} className="bg-primary/20 text-primary text-xs px-2 py-1 rounded">
+                            {method.replace(/_/g, ' ')}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {!(detectionResults as any).error && detectionResults.missing_transactions && detectionResults.missing_transactions.length > 0 && (
+                    <div>
+                      <p className="text-text-secondary text-xs mb-2">
+                        Missing Transactions ({detectionResults.missing_transactions.length})
+                      </p>
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {detectionResults.missing_transactions.map((txid, index) => (
+                          <p key={index} className="text-text font-mono text-xs break-all bg-surface p-2 rounded">
+                            {txid}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {detectionResults.message && (
+                    <div className={`pt-2 border-t border-border ${
+                      (detectionResults as any).error 
+                        ? 'bg-yellow-500/10 border-yellow-500/30 p-3 rounded-lg -mx-3 -mb-3' 
+                        : ''
+                    }`}>
+                      <p className="text-text-secondary text-xs mb-1">Detection Summary</p>
+                      <p className={`text-sm ${
+                        (detectionResults as any).error 
+                          ? 'text-yellow-400' 
+                          : 'text-text'
+                      }`}>
+                        {detectionResults.message}
+                      </p>
+                      {(detectionResults as any).error && (detectionResults as any).error_type === 'rpc_connection' && (
+                        <div className="mt-2 text-xs text-text-muted">
+                          <p className="mb-1">💡 <strong>To enable detection:</strong></p>
+                          <ul className="list-disc list-inside space-y-1 ml-2">
+                            <li>Start Bitcoin Core testnet: <code className="bg-surface px-1 py-0.5 rounded">./start_bitcoind_testnet.sh</code></li>
+                            <li>Or use Demo Mode (toggle button) to test without Bitcoin Core</li>
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
               {/* Block Hash */}
               {report.block_hash && (
                 <div className="bg-surface-light p-3 rounded-lg">
@@ -157,7 +246,7 @@ export default function ValidateReportModal({
               {report.transaction_ids && report.transaction_ids.length > 0 && (
                 <div className="bg-surface-light p-3 rounded-lg">
                   <p className="text-text-secondary text-xs mb-2">
-                    Transaction IDs ({report.transaction_ids.length})
+                    Reported Transaction IDs ({report.transaction_ids.length})
                   </p>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {report.transaction_ids.map((txid, index) => (
@@ -182,8 +271,8 @@ export default function ValidateReportModal({
                 </div>
               )}
 
-              {/* Evidence Summary */}
-              {!report.block_hash && !report.transaction_ids?.length && !report.description && (
+              {/* Evidence Summary - Show if no detection results AND no basic evidence */}
+              {!detectionResults && !report.block_hash && !report.transaction_ids?.length && !report.description && (
                 <div className="bg-yellow-500/20 border border-yellow-500/50 p-3 rounded-lg">
                   <p className="text-yellow-400 text-sm">
                     ⚠️ No detailed evidence provided. Only basic report information available.

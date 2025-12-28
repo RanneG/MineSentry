@@ -244,13 +244,17 @@ async def create_report(
 
 
 async def validate_report_background(report_id: str):
-    """Background task to validate a report"""
+    """Background task to validate a report and run detection spells"""
+    from integration_bridge import get_integration
+    
     db_instance = get_database()
     session = db_instance.get_session()
-    validator_instance = get_validator()
+    integration = get_integration()
     
     try:
         from database import MiningPoolReportDB
+        import json
+        
         db_report = session.query(MiningPoolReportDB).filter_by(report_id=report_id).first()
         
         if not db_report:
@@ -258,19 +262,64 @@ async def validate_report_background(report_id: str):
         
         report = db_report.to_model()
         
-        # Validate report
-        is_valid, message, validation_data = validator_instance.validate_report(report)
+        # Run detection spell
+        detection_results = integration.run_detection_spell(report)
         
-        # Update report status
-        if is_valid:
-            db_report.status = ReportStatus.UNDER_REVIEW
+        # Store detection results in database (using description field as JSON for now)
+        # TODO: Add dedicated fields for detection_results in database schema
+        detection_data = {
+            'confidence_score': detection_results['confidence_score'],
+            'is_censored': detection_results['is_censored'],
+            'detection_methods': detection_results['detection_methods'],
+            'evidence_count': detection_results['evidence_count'],
+            'missing_transactions': detection_results['missing_transactions'],
+            'message': detection_results['message'],
+            'error': detection_results.get('error', False),
+            'error_type': detection_results.get('error_type', None)
+        }
+        
+        # Store as JSON in a text field (we'll add a proper field later)
+        # For now, append to description or store separately
+        # Since we can't modify schema easily, let's store it in description as JSON
+        # In production, add a detection_results JSON column
+        if db_report.description:
+            try:
+                existing_desc = json.loads(db_report.description)
+                if isinstance(existing_desc, dict):
+                    existing_desc['detection_results'] = detection_data
+                    db_report.description = json.dumps(existing_desc)
+                else:
+                    # If description is not JSON, store separately
+                    db_report.description = json.dumps({
+                        'original_description': db_report.description,
+                        'detection_results': detection_data
+                    })
+            except (json.JSONDecodeError, TypeError):
+                # Description is plain text, store both
+                db_report.description = json.dumps({
+                    'original_description': db_report.description,
+                    'detection_results': detection_data
+                })
         else:
-            db_report.status = ReportStatus.REJECTED
+            db_report.description = json.dumps({
+                'detection_results': detection_data
+            })
+        
+        # Update report status based on detection
+        # If detection found censorship with high confidence, mark as UNDER_REVIEW
+        if detection_results['is_censored'] and detection_results['confidence_score'] >= 0.7:
+            db_report.status = ReportStatus.UNDER_REVIEW
+        elif detection_results['confidence_score'] < 0.3:
+            # Very low confidence, might be rejected
+            db_report.status = ReportStatus.PENDING  # Keep pending for manual review
         
         session.commit()
+        print(f"Detection completed for report {report_id}: confidence={detection_results['confidence_score']:.2f}, methods={len(detection_results['detection_methods'])}")
         
     except Exception as e:
-        print(f"Error in background validation: {e}")
+        print(f"Error in background validation/detection: {e}")
+        import traceback
+        traceback.print_exc()
         session.rollback()
     finally:
         session.close()
@@ -313,14 +362,101 @@ async def get_report(report_id: str):
     
     try:
         from database import MiningPoolReportDB
+        import json
         db_report = session.query(MiningPoolReportDB).filter_by(report_id=report_id).first()
         
         if not db_report:
             raise HTTPException(status_code=404, detail="Report not found")
         
         report = db_report.to_model()
-        return ReportResponse(**report.to_dict())
         
+        # Try to extract detection results from description if it's JSON
+        detection_results = None
+        if db_report.description:
+            try:
+                desc_data = json.loads(db_report.description)
+                if isinstance(desc_data, dict) and 'detection_results' in desc_data:
+                    detection_results = desc_data['detection_results']
+                    # Restore original description if it exists
+                    if 'original_description' in desc_data:
+                        report.description = desc_data['original_description']
+            except (json.JSONDecodeError, TypeError):
+                # Description is plain text, use as is
+                pass
+        
+        report_dict = report.to_dict()
+        
+        # Add detection results to response if available
+        if detection_results:
+            report_dict['detection_results'] = detection_results
+        
+        return ReportResponse(**report_dict)
+        
+    finally:
+        session.close()
+
+
+@app.get("/reports/{report_id}/confidence")
+async def get_report_confidence(report_id: str):
+    """Get confidence score and detection results for a report"""
+    db_instance = get_database()
+    session = db_instance.get_session()
+    
+    try:
+        from database import MiningPoolReportDB
+        import json
+        
+        db_report = session.query(MiningPoolReportDB).filter_by(report_id=report_id).first()
+        
+        if not db_report:
+            raise HTTPException(status_code=404, detail="Report not found")
+        
+        # Extract detection results from description
+        detection_results = None
+        if db_report.description:
+            try:
+                desc_data = json.loads(db_report.description)
+                if isinstance(desc_data, dict) and 'detection_results' in desc_data:
+                    detection_results = desc_data['detection_results']
+            except (json.JSONDecodeError, TypeError):
+                pass
+        
+        if not detection_results:
+            # If no detection results found, run detection now
+            from integration_bridge import get_integration
+            integration = get_integration()
+            report = db_report.to_model()
+            detection_results_dict = integration.run_detection_spell(report)
+            
+            detection_results = {
+                'confidence_score': detection_results_dict['confidence_score'],
+                'is_censored': detection_results_dict['is_censored'],
+                'detection_methods': detection_results_dict['detection_methods'],
+                'evidence_count': detection_results_dict['evidence_count'],
+                'missing_transactions': detection_results_dict['missing_transactions'],
+                'message': detection_results_dict['message'],
+                'details': detection_results_dict.get('details', {}),
+                'error': detection_results_dict.get('error', False),
+                'error_type': detection_results_dict.get('error_type', None)
+            }
+        
+        return {
+            'report_id': report_id,
+            'confidence_score': detection_results.get('confidence_score', 0.0),
+            'is_censored': detection_results.get('is_censored', False),
+            'detection_methods': detection_results.get('detection_methods', []),
+            'evidence_count': detection_results.get('evidence_count', 0),
+            'missing_transactions': detection_results.get('missing_transactions', []),
+            'message': detection_results.get('message', 'No detection results available'),
+            'details': detection_results.get('details', {}),
+            'error': detection_results.get('error', False),
+            'error_type': detection_results.get('error_type', None)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error getting confidence: {str(e)}")
     finally:
         session.close()
 

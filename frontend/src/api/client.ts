@@ -68,6 +68,20 @@ export const apiClient = {
     return data
   },
 
+  async getReportConfidence(reportId: string): Promise<{
+    report_id: string
+    confidence_score: number
+    is_censored: boolean
+    detection_methods: string[]
+    evidence_count: number
+    missing_transactions: string[]
+    message: string
+    details: Record<string, any>
+  }> {
+    const { data } = await api.get(`/reports/${reportId}/confidence`)
+    return data
+  },
+
   async submitReport(reportData: {
     reporter_address: string
     pool_address: string

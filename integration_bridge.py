@@ -515,6 +515,106 @@ class MineSentryIntegration:
             
         finally:
             session.close()
+    
+    def run_detection_spell(
+        self,
+        report: MiningPoolReport
+    ) -> Dict[str, Any]:
+        """
+        Run censorship detection spell on a report
+        
+        Args:
+            report: MiningPoolReport to analyze
+            
+        Returns:
+            Dictionary with detection results including:
+            - is_censored: bool
+            - confidence_score: float (0.0-1.0)
+            - evidence_count: int
+            - missing_transactions: List[str]
+            - detection_methods: List[str]
+            - details: Dict with method-specific results
+            - message: str
+        """
+        try:
+            # Run the censorship detection spell
+            detection_result = self.censorship_spell.detect_censorship(
+                block_height=report.block_height,
+                block_hash=report.block_hash,
+                suspected_txids=report.transaction_ids or []
+            )
+            
+            # Check if detection resulted in an error (check message for error indicators)
+            error_message = detection_result.message
+            is_error = 'Error in censorship detection' in error_message or 'RPC connection error' in error_message or 'Connection refused' in error_message
+            
+            # If it's an error, provide user-friendly message
+            if is_error:
+                error_str = error_message
+                if 'RPC connection error' in error_str or 'Connection refused' in error_str:
+                    user_message = (
+                        "Bitcoin Core is not running or not accessible. "
+                        "Detection requires a running Bitcoin node to analyze blockchain data. "
+                        "Please start Bitcoin Core or use demo mode to test the interface."
+                    )
+                    error_type = 'rpc_connection'
+                else:
+                    user_message = f"Detection error: {error_str.replace('Error in censorship detection: ', '')}"
+                    error_type = 'other'
+                
+                return {
+                    'is_censored': False,
+                    'confidence_score': 0.0,
+                    'evidence_count': 0,
+                    'missing_transactions': [],
+                    'excluded_fee_total': 0.0,
+                    'detection_methods': [],
+                    'details': detection_result.details,
+                    'message': user_message,
+                    'error': True,
+                    'error_type': error_type
+                }
+            
+            # Convert result to dictionary for API response (no error)
+            return {
+                'is_censored': detection_result.is_censored,
+                'confidence_score': detection_result.confidence_score,
+                'evidence_count': detection_result.evidence_count,
+                'missing_transactions': detection_result.missing_transactions,
+                'excluded_fee_total': detection_result.excluded_fee_total,
+                'detection_methods': detection_result.detection_methods,
+                'details': detection_result.details,
+                'message': detection_result.message,
+                'error': False
+            }
+            
+        except Exception as e:
+            error_str = str(e)
+            # Check if it's an RPC connection error and provide helpful message
+            if 'RPC connection error' in error_str or 'Connection refused' in error_str:
+                user_message = (
+                    "Bitcoin Core is not running or not accessible. "
+                    "Detection requires a running Bitcoin node to analyze blockchain data. "
+                    "Please start Bitcoin Core or use demo mode to test the interface."
+                )
+                error_type = 'rpc_connection'
+            else:
+                user_message = f"Detection error: {error_str}"
+                error_type = 'other'
+            
+            # Return error result if detection fails
+            return {
+                'is_censored': False,
+                'confidence_score': 0.0,
+                'evidence_count': 0,
+                'missing_transactions': [],
+                'excluded_fee_total': 0.0,
+                'detection_methods': [],
+                'details': {'error': str(e)},
+                'message': user_message,
+                'error': True,
+                'error_type': error_type
+            }
 
 
 # Global integration instance
