@@ -392,6 +392,22 @@ class MineSentryIntegration:
                 'error': str(e)
             }
     
+    def get_payment_history(self) -> List[Dict[str, Any]]:
+        """
+        Get payment history from bounty contract
+        
+        Returns:
+            List of paid payment dictionaries
+        """
+        if not self.bounty_contract:
+            return []
+        
+        try:
+            return self.bounty_contract.get_payment_history()
+        except Exception as e:
+            print(f"Error getting payment history: {e}")
+            return []
+    
     def get_system_status(self) -> Dict[str, Any]:
         """
         Get overall system status

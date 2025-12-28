@@ -8,6 +8,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useWalletStore } from '@/store/walletStore'
 import { connectWallet, disconnectWallet, signMessage, checkInstalledWallets, WALLET_PROVIDERS } from '@/lib/walletProviders'
+import { useDemoMode } from '@/contexts/DemoModeContext'
 
 export interface UseWalletReturn {
   // State
@@ -40,6 +41,7 @@ export interface UseWalletReturn {
 
 export function useWallet(): UseWalletReturn {
   const walletStore = useWalletStore()
+  const { isDemoMode, demoWalletAddress, demoNetwork } = useDemoMode()
   const [isConnecting, setIsConnecting] = useState(false)
   const [isDisconnecting, setIsDisconnecting] = useState(false)
   const [installedWallets, setInstalledWallets] = useState<Record<string, boolean>>({})
@@ -71,6 +73,12 @@ export function useWallet(): UseWalletReturn {
 
   // Connect to wallet
   const connect = useCallback(async (providerId: string) => {
+    // In demo mode, don't allow connecting to real wallets
+    if (isDemoMode) {
+      // Already connected via demo mode
+      return
+    }
+
     try {
       setIsConnecting(true)
       
@@ -94,14 +102,19 @@ export function useWallet(): UseWalletReturn {
     } finally {
       setIsConnecting(false)
     }
-  }, [walletStore])
+  }, [walletStore, isDemoMode])
 
   // Disconnect from wallet
   const disconnect = useCallback(async () => {
+    // In demo mode, don't allow disconnecting (user should turn off demo mode instead)
+    if (isDemoMode && walletStore.provider === 'demo') {
+      return
+    }
+
     try {
       setIsDisconnecting(true)
       
-      if (walletStore.provider) {
+      if (walletStore.provider && walletStore.provider !== 'demo') {
         await disconnectWallet(walletStore.provider)
       }
       
@@ -118,7 +131,7 @@ export function useWallet(): UseWalletReturn {
     } finally {
       setIsDisconnecting(false)
     }
-  }, [walletStore])
+  }, [walletStore, isDemoMode])
 
   // Sign a message
   const sign = useCallback(async (message: string): Promise<string> => {
@@ -141,17 +154,18 @@ export function useWallet(): UseWalletReturn {
 
   // Copy address to clipboard
   const copyAddress = useCallback(async (): Promise<void> => {
-    if (!walletStore.address) {
+    const addressToCopy = isDemoMode ? demoWalletAddress : walletStore.address
+    if (!addressToCopy) {
       throw new Error('No address to copy')
     }
 
     try {
-      await navigator.clipboard.writeText(walletStore.address)
+      await navigator.clipboard.writeText(addressToCopy)
     } catch (error) {
       console.error('Failed to copy address:', error)
       // Fallback for older browsers
       const textArea = document.createElement('textarea')
-      textArea.value = walletStore.address
+      textArea.value = addressToCopy
       textArea.style.position = 'fixed'
       textArea.style.opacity = '0'
       document.body.appendChild(textArea)
@@ -159,22 +173,38 @@ export function useWallet(): UseWalletReturn {
       document.execCommand('copy')
       document.body.removeChild(textArea)
     }
-  }, [walletStore.address])
+  }, [walletStore.address, isDemoMode, demoWalletAddress])
 
   // Format address for display
   const formatAddress = useCallback((length: number = 8): string => {
-    if (!walletStore.address) return ''
+    const addressToFormat = isDemoMode ? demoWalletAddress : walletStore.address
+    if (!addressToFormat) return ''
     
-    if (walletStore.address.length <= length * 2) {
-      return walletStore.address
+    if (addressToFormat.length <= length * 2) {
+      return addressToFormat
     }
     
-    return `${walletStore.address.substring(0, length)}...${walletStore.address.substring(walletStore.address.length - length)}`
-  }, [walletStore.address])
+    return `${addressToFormat.substring(0, length)}...${addressToFormat.substring(addressToFormat.length - length)}`
+  }, [walletStore.address, isDemoMode, demoWalletAddress])
 
-  // Restore wallet connection from localStorage on mount
+  // Sync demo mode with wallet store
   useEffect(() => {
-    if (walletStore.connected) return // Already connected
+    const currentProvider = walletStore.provider
+    if (isDemoMode) {
+      // When demo mode is enabled, simulate a connected wallet
+      if (currentProvider !== 'demo') {
+        walletStore.connect('demo', demoWalletAddress, demoNetwork)
+      }
+    } else if (currentProvider === 'demo') {
+      // When demo mode is disabled and we're using demo provider, disconnect
+      walletStore.disconnect()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDemoMode, demoWalletAddress, demoNetwork])
+
+  // Restore wallet connection from localStorage on mount (only if not in demo mode)
+  useEffect(() => {
+    if (isDemoMode || walletStore.connected) return // Skip if demo mode or already connected
     
     try {
       const stored = localStorage.getItem('minesentry_wallet')
@@ -192,7 +222,8 @@ export function useWallet(): UseWalletReturn {
     } catch (error) {
       console.error('Failed to restore wallet connection:', error)
     }
-  }, [walletStore])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDemoMode])
 
   // Get providers with installation status
   const providers = WALLET_PROVIDERS.map(provider => ({
@@ -200,12 +231,13 @@ export function useWallet(): UseWalletReturn {
     installed: installedWallets[provider.id] ?? false,
   }))
 
+  // Return demo mode values when in demo mode, otherwise return real wallet values
   return {
-    // State
-    connected: walletStore.connected,
-    address: walletStore.address,
-    provider: walletStore.provider,
-    network: walletStore.network,
+    // State - use demo values if in demo mode
+    connected: isDemoMode ? true : walletStore.connected,
+    address: isDemoMode ? demoWalletAddress : walletStore.address,
+    provider: isDemoMode ? 'demo' : walletStore.provider,
+    network: isDemoMode ? demoNetwork : walletStore.network,
     
     // Providers
     providers,
@@ -220,8 +252,8 @@ export function useWallet(): UseWalletReturn {
     formatAddress,
     
     // Loading states
-    isConnecting,
-    isDisconnecting,
+    isConnecting: isDemoMode ? false : isConnecting,
+    isDisconnecting: isDemoMode ? false : isDisconnecting,
   }
 }
 

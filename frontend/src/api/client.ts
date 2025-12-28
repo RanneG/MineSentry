@@ -5,6 +5,7 @@ import type {
   SystemStatus,
   BountyContract,
   BountyPayment,
+  BountyHunterEntry,
 } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -152,6 +153,17 @@ export const apiClient = {
       authorized_signers: authorizedSigners,
       min_signatures: minSignatures,
     })
+    return data
+  },
+
+  // Leaderboard
+  async getLeaderboard(): Promise<any[]> {
+    const { data } = await api.get('/leaderboard')
+    return data
+  },
+
+  async getBountyHuntersLeaderboard(limit: number = 100): Promise<BountyHunterEntry[]> {
+    const { data } = await api.get('/leaderboard/bounty-hunters', { params: { limit } })
     return data
   },
 

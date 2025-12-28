@@ -7,7 +7,6 @@ import { toast } from '@/components/ui/Toaster'
 import { useState } from 'react'
 import InfoTooltip from '@/components/InfoTooltip'
 import { useDemoMode } from '@/contexts/DemoModeContext'
-import { getMockReport } from '@/api/mockApi'
 import { useWalletStore } from '@/store/walletStore'
 import ValidateReportModal from '@/components/ValidateReportModal'
 
@@ -23,12 +22,9 @@ export default function ReportDetail() {
   const effectiveWalletAddress = isDemoMode ? demoWalletAddress : walletAddress
 
   const { data: report, isLoading } = useQuery({
-    queryKey: ['report', reportId, isDemoMode],
+    queryKey: ['report', reportId],
     queryFn: () => {
-      if (isDemoMode && reportId) {
-        const mockReport = getMockReport(reportId)
-        if (mockReport) return Promise.resolve(mockReport)
-      }
+      // Use real reports from API for both demo and non-demo modes
       return apiClient.getReport(reportId!)
     },
     enabled: !!reportId,

@@ -7,7 +7,6 @@ import { format } from 'date-fns'
 import { toast } from '@/components/ui/Toaster'
 import type { ReportStatus } from '@/types'
 import { useDemoMode } from '@/contexts/DemoModeContext'
-import { getMockReports } from '@/api/mockApi'
 
 const STATUS_FILTERS: { value: ReportStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -18,6 +17,7 @@ const STATUS_FILTERS: { value: ReportStatus | 'all'; label: string }[] = [
 ]
 
 export default function Reports() {
+  const { isDemoMode } = useDemoMode()
   const [statusFilter, setStatusFilter] = useState<ReportStatus | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -25,7 +25,10 @@ export default function Reports() {
 
   const { data: reports, isLoading } = useQuery({
     queryKey: ['reports', statusFilter === 'all' ? null : statusFilter],
-    queryFn: () => apiClient.getReports({ status: statusFilter === 'all' ? undefined : statusFilter }),
+    queryFn: () => {
+      // Use real reports from API for both demo and non-demo modes
+      return apiClient.getReports({ status: statusFilter === 'all' ? undefined : statusFilter })
+    },
   })
 
   const deleteMutation = useMutation({

@@ -19,8 +19,8 @@ export default function ValidateReportModal({
   onClose,
   onVoteSubmitted,
 }: ValidateReportModalProps) {
-  const { address: walletAddress, connected } = useWalletStore()
-  const { isDemoMode, demoWalletAddress } = useDemoMode()
+  const { connected } = useWalletStore()
+  const { isDemoMode } = useDemoMode()
   const [vote, setVote] = useState<'confirm' | 'reject' | null>(null)
   const [stakeAmount, setStakeAmount] = useState<string>('10000')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,7 +29,6 @@ export default function ValidateReportModal({
 
   // In demo mode, consider wallet as connected
   const effectiveConnected = isDemoMode || connected
-  const effectiveAddress = isDemoMode ? demoWalletAddress : walletAddress
 
   if (!isOpen) return null
 

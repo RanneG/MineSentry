@@ -5,7 +5,7 @@ import { apiClient } from '@/api/client'
 import { format } from 'date-fns'
 import StatsCard from '@/components/StatsCard'
 import { useDemoMode } from '@/contexts/DemoModeContext'
-import { mockSystemStats, mockSystemStatus, getMockReports } from '@/api/mockApi'
+import { mockSystemStats, mockSystemStatus } from '@/api/mockApi'
 
 export default function Dashboard() {
   const { isDemoMode } = useDemoMode()
@@ -29,12 +29,9 @@ export default function Dashboard() {
   })
 
   const { data: reports, isLoading: reportsLoading } = useQuery({
-    queryKey: ['reports', 'recent', isDemoMode],
+    queryKey: ['reports', 'recent'],
     queryFn: () => {
-      if (isDemoMode) {
-        const mockReports = getMockReports()
-        return Promise.resolve(mockReports.slice(0, 5))
-      }
+      // Use real reports from API for both demo and non-demo modes
       return apiClient.getReports({ limit: 5 })
     },
   })

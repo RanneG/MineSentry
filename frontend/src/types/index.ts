@@ -112,3 +112,21 @@ export interface WalletState {
   network?: 'mainnet' | 'testnet' | 'signet' | 'regtest'
 }
 
+export interface LeaderboardEntry {
+  rank: number
+  address: string
+  reports: number
+  verified: number
+  totalBounty: number
+}
+
+export interface BountyHunterEntry {
+  rank: number
+  address: string
+  total_bounties_earned_btc: number
+  total_bounties_earned_sats: number
+  successful_claims_count: number
+  largest_bounty_btc: number
+  largest_bounty_sats: number
+}
+

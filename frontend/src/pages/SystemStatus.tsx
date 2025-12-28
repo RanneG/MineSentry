@@ -3,6 +3,7 @@ import { Activity, Database, Shield, CheckCircle, XCircle, RefreshCw } from 'luc
 import { apiClient } from '@/api/client'
 import { useDemoMode } from '@/contexts/DemoModeContext'
 import { mockSystemStatus } from '@/api/mockApi'
+import InfoTooltip from '@/components/InfoTooltip'
 
 export default function SystemStatus() {
   const { isDemoMode } = useDemoMode()
@@ -47,7 +48,10 @@ export default function SystemStatus() {
 
       {/* Overall Status */}
       <div className="card">
-        <h2 className="text-xl font-semibold text-text mb-4">Overall Status</h2>
+        <h2 className="text-xl font-semibold text-text mb-4 flex items-center gap-2">
+          Overall Status
+          <InfoTooltip text="Overall system health status. Shows whether all critical components (Bitcoin node and database) are connected and operational." />
+        </h2>
         <div className="flex items-center gap-4">
           {status.bitcoin_rpc?.connected && status.database?.connected ? (
             <>
@@ -76,7 +80,10 @@ export default function SystemStatus() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Activity className={`w-6 h-6 ${status.bitcoin_rpc?.connected ? 'text-green-400' : 'text-red-400'}`} />
-              <h3 className="text-lg font-semibold text-text">Bitcoin Node</h3>
+              <h3 className="text-lg font-semibold text-text flex items-center gap-2">
+                Bitcoin Node
+                <InfoTooltip text="Connection status to your Bitcoin Core node via RPC. The node is required for block height monitoring, transaction verification, and censorship detection spells." />
+              </h3>
             </div>
             {status.bitcoin_rpc?.connected ? (
               <span className="status-badge status-verified">Connected</span>
@@ -176,7 +183,10 @@ export default function SystemStatus() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Database className={`w-6 h-6 ${status.database?.connected ? 'text-green-400' : 'text-red-400'}`} />
-              <h3 className="text-lg font-semibold text-text">Database</h3>
+              <h3 className="text-lg font-semibold text-text flex items-center gap-2">
+                Database
+                <InfoTooltip text="SQLite database connection status. The database stores all submitted reports, validation votes, and system metadata. Reports cannot be saved if the database is disconnected." />
+              </h3>
             </div>
             {status.database?.connected ? (
               <span className="status-badge status-verified">Connected</span>
@@ -207,7 +217,10 @@ export default function SystemStatus() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6 text-primary" />
-              <h3 className="text-lg font-semibold text-text">Spells</h3>
+              <h3 className="text-lg font-semibold text-text flex items-center gap-2">
+                Spells
+                <InfoTooltip text="Detection spells (modules) available in the system. Censorship Detection analyzes blocks for suspicious activity. Bounty Contract manages reward payments through multi-signature transactions." />
+              </h3>
             </div>
           </div>
           <div className="space-y-2">
@@ -232,7 +245,10 @@ export default function SystemStatus() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Activity className="w-6 h-6 text-primary" />
-                <h3 className="text-lg font-semibold text-text">Bounty Contract</h3>
+                <h3 className="text-lg font-semibold text-text flex items-center gap-2">
+                  Bounty Contract
+                  <InfoTooltip text="Multi-signature Bitcoin contract that holds bounty funds and manages reward payments. Requires multiple authorized signers to approve payments, ensuring secure and decentralized reward distribution." />
+                </h3>
               </div>
               <span className={`status-badge status-${status.bounty_contract.state}`}>
                 {status.bounty_contract.state}

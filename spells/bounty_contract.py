@@ -384,6 +384,31 @@ class BountyContract:
             for p in self.state.payment_queue
         ]
     
+    def get_payment_history(self) -> List[Dict[str, Any]]:
+        """
+        Get payment history (completed payments)
+        
+        Returns:
+            List of payment dictionaries with status='paid'
+        """
+        return [
+            {
+                'payment_id': p.payment_id,
+                'report_id': p.report_id,
+                'recipient_address': p.recipient_address,
+                'amount_sats': p.amount_sats,
+                'amount_btc': p.amount_sats / 100000000,
+                'status': p.status.value,
+                'approvers': p.approvers,
+                'txid': p.txid,
+                'created_at': p.created_at.isoformat(),
+                'approved_at': p.approved_at.isoformat() if p.approved_at else None,
+                'paid_at': p.paid_at.isoformat() if p.paid_at else None,
+            }
+            for p in self.state.payment_history
+            if p.status == PaymentStatus.PAID
+        ]
+    
     def fund_contract(self, amount_sats: int) -> bool:
         """
         Fund the contract (add funds)

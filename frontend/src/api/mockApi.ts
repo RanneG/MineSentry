@@ -9,6 +9,8 @@ import type {
   SystemStatus,
   BountyContract,
   BountyPayment,
+  BountyHunterEntry,
+  LeaderboardEntry,
 } from '@/types'
 
 // Mock reports
@@ -163,13 +165,7 @@ export function submitMockReport(data: {
 }
 
 // Mock leaderboard data
-export interface LeaderboardEntry {
-  rank: number
-  address: string
-  reports: number
-  verified: number
-  totalBounty: number
-}
+// LeaderboardEntry type is imported from @/types
 
 export const mockLeaderboard: LeaderboardEntry[] = [
   {
@@ -211,6 +207,60 @@ export const mockLeaderboard: LeaderboardEntry[] = [
 
 export function getMockLeaderboard(): LeaderboardEntry[] {
   return [...mockLeaderboard]
+}
+
+// Mock Bounty Hunters Leaderboard
+
+export const mockBountyHunters: BountyHunterEntry[] = [
+  {
+    rank: 1,
+    address: 'bc1qreporter1234567890abcdefghijklmnopqrstuvwxyz',
+    total_bounties_earned_btc: 0.015,
+    total_bounties_earned_sats: 1500000,
+    successful_claims_count: 8,
+    largest_bounty_btc: 0.003,
+    largest_bounty_sats: 300000,
+  },
+  {
+    rank: 2,
+    address: 'bc1qreporter9876543210zyxwvutsrqponmlkjihgfedcba',
+    total_bounties_earned_btc: 0.012,
+    total_bounties_earned_sats: 1200000,
+    successful_claims_count: 6,
+    largest_bounty_btc: 0.0025,
+    largest_bounty_sats: 250000,
+  },
+  {
+    rank: 3,
+    address: 'bc1qvalidator1234567890abcdefghijklmnopqrstuvwxyz',
+    total_bounties_earned_btc: 0.008,
+    total_bounties_earned_sats: 800000,
+    successful_claims_count: 5,
+    largest_bounty_btc: 0.002,
+    largest_bounty_sats: 200000,
+  },
+  {
+    rank: 4,
+    address: 'bc1qcontributor1111111111abcdefghijklmnopqrstuv',
+    total_bounties_earned_btc: 0.005,
+    total_bounties_earned_sats: 500000,
+    successful_claims_count: 4,
+    largest_bounty_btc: 0.0015,
+    largest_bounty_sats: 150000,
+  },
+  {
+    rank: 5,
+    address: 'bc1qcontributor2222222222abcdefghijklmnopqrstuv',
+    total_bounties_earned_btc: 0.003,
+    total_bounties_earned_sats: 300000,
+    successful_claims_count: 3,
+    largest_bounty_btc: 0.001,
+    largest_bounty_sats: 100000,
+  },
+]
+
+export function getMockBountyHunters(): BountyHunterEntry[] {
+  return [...mockBountyHunters]
 }
 
 // Mock Bounty Payments

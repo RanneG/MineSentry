@@ -3,8 +3,10 @@ import { Wallet, LogOut, ChevronDown, Copy, Check, QrCode, ExternalLink } from '
 import { useWallet } from '@/hooks/useWallet'
 import { QRCodeSVG } from 'qrcode.react'
 import { toast } from '@/components/ui/Toaster'
+import { useDemoMode } from '@/contexts/DemoModeContext'
 
 export default function WalletConnect() {
+  const { isDemoMode } = useDemoMode()
   const { 
     connected, 
     address, 
@@ -58,6 +60,9 @@ export default function WalletConnect() {
   }
 
   const getProviderName = (providerId?: string) => {
+    if (providerId === 'demo') {
+      return 'Demo Mode'
+    }
     const provider = providers.find(p => p.id === providerId)
     return provider?.name || providerId || 'Unknown'
   }
@@ -159,13 +164,19 @@ export default function WalletConnect() {
                   </div>
                 )}
 
-                <button
-                  onClick={handleDisconnect}
-                  className="w-full text-left px-4 py-2.5 text-sm text-red-400 flex items-center gap-3 hover:bg-surface-light transition-colors"
-                >
-                  <LogOut size={16} />
-                  Disconnect Wallet
-                </button>
+                {isDemoMode && provider === 'demo' ? (
+                  <div className="w-full px-4 py-2.5 text-xs text-text-secondary text-center border border-border rounded-lg bg-surface-light/50">
+                    Turn off Demo Mode to disconnect
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleDisconnect}
+                    className="w-full text-left px-4 py-2.5 text-sm text-red-400 flex items-center gap-3 hover:bg-surface-light transition-colors"
+                  >
+                    <LogOut size={16} />
+                    Disconnect Wallet
+                  </button>
+                )}
               </div>
             </div>
           </>

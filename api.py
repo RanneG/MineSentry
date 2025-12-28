@@ -617,6 +617,69 @@ async def get_system_status():
     return integration.get_system_status()
 
 
+@app.get("/leaderboard/bounty-hunters")
+async def get_bounty_hunters_leaderboard(limit: int = 100):
+    """
+    Get top bounty hunters leaderboard
+    
+    Returns users ranked by total bounties earned from successful payments
+    """
+    integration = get_integration()
+    
+    if not integration.bounty_contract:
+        # Return empty list if contract not initialized
+        return []
+    
+    try:
+        # Get payment history (only paid payments)
+        payment_history = integration.bounty_contract.get_payment_history()
+        
+        # Aggregate by recipient address
+        hunter_stats = {}
+        for payment in payment_history:
+            recipient = payment['recipient_address']
+            amount_sats = payment['amount_sats']
+            
+            if recipient not in hunter_stats:
+                hunter_stats[recipient] = {
+                    'address': recipient,
+                    'total_bounties_earned_sats': 0,
+                    'successful_claims_count': 0,
+                    'largest_bounty_sats': 0,
+                }
+            
+            hunter_stats[recipient]['total_bounties_earned_sats'] += amount_sats
+            hunter_stats[recipient]['successful_claims_count'] += 1
+            hunter_stats[recipient]['largest_bounty_sats'] = max(
+                hunter_stats[recipient]['largest_bounty_sats'],
+                amount_sats
+            )
+        
+        # Convert to list and sort by total earned (descending)
+        hunters = list(hunter_stats.values())
+        hunters.sort(key=lambda x: x['total_bounties_earned_sats'], reverse=True)
+        
+        # Add rank and convert to response format
+        result = []
+        for rank, hunter in enumerate(hunters[:limit], start=1):
+            result.append({
+                'rank': rank,
+                'address': hunter['address'],
+                'total_bounties_earned_btc': hunter['total_bounties_earned_sats'] / 100000000,
+                'total_bounties_earned_sats': hunter['total_bounties_earned_sats'],
+                'successful_claims_count': hunter['successful_claims_count'],
+                'largest_bounty_btc': hunter['largest_bounty_sats'] / 100000000,
+                'largest_bounty_sats': hunter['largest_bounty_sats'],
+            })
+        
+        return result
+        
+    except Exception as e:
+        # Log error but return empty list to prevent frontend errors
+        print(f"Error getting bounty hunters leaderboard: {e}")
+        return []
+
+
 # Validation/Voting Endpoints
 class ValidatorVoteRequest(BaseModel):
     """Request model for validator voting"""
