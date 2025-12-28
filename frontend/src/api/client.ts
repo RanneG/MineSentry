@@ -154,6 +154,21 @@ export const apiClient = {
     })
     return data
   },
+
+  // Validation/Voting
+  async submitValidatorVote(
+    reportId: string,
+    vote: 'confirm' | 'reject',
+    validatorAddress: string,
+    stakeAmountSats: number
+  ) {
+    const { data } = await api.post(`/reports/${reportId}/vote`, {
+      validator_address: validatorAddress,
+      vote_decision: vote,
+      stake_amount_sats: stakeAmountSats,
+    })
+    return data
+  },
 }
 
 export default apiClient

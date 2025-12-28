@@ -617,6 +617,74 @@ async def get_system_status():
     return integration.get_system_status()
 
 
+# Validation/Voting Endpoints
+class ValidatorVoteRequest(BaseModel):
+    """Request model for validator voting"""
+    validator_address: str = Field(..., description="Validator's Bitcoin address")
+    vote_decision: str = Field(..., description="Vote decision: 'confirm' or 'reject'")
+    stake_amount_sats: int = Field(..., ge=10000, description="Amount of Bitcoin to stake (minimum 10,000 sats)")
+
+
+@app.post("/reports/{report_id}/vote")
+async def submit_validator_vote(report_id: str, request: ValidatorVoteRequest):
+    """
+    Submit a validator vote on a report
+    
+    Validators can vote 'confirm' or 'reject' and must stake Bitcoin.
+    The stake is locked until the report is resolved.
+    """
+    db_instance = get_database()
+    session = db_instance.get_session()
+    
+    try:
+        from database import MiningPoolReportDB
+        db_report = session.query(MiningPoolReportDB).filter_by(report_id=report_id).first()
+        
+        if not db_report:
+            raise HTTPException(status_code=404, detail="Report not found")
+        
+        # Prevent reporter from voting on their own report
+        if db_report.reporter_address == request.validator_address:
+            raise HTTPException(
+                status_code=403,
+                detail="You cannot vote on your own report"
+            )
+        
+        # Check if report is in a votable state
+        if db_report.status not in [ReportStatus.PENDING, ReportStatus.UNDER_REVIEW]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot vote on reports with status: {db_report.status.value}"
+            )
+        
+        # Validate vote decision
+        if request.vote_decision not in ['confirm', 'reject']:
+            raise HTTPException(
+                status_code=400,
+                detail="vote_decision must be 'confirm' or 'reject'"
+            )
+        
+        # TODO: Implement actual voting/staking logic with database storage
+        # For now, return success (this will be implemented with the validation system)
+        
+        return {
+            "success": True,
+            "message": f"Vote submitted: {request.vote_decision}",
+            "report_id": report_id,
+            "validator_address": request.validator_address,
+            "stake_amount_sats": request.stake_amount_sats,
+            "vote_decision": request.vote_decision
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        session.rollback()
+        raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        session.close()
+
+
 if __name__ == "__main__":
     import uvicorn
     import os

@@ -8,12 +8,19 @@ import { useState } from 'react'
 import InfoTooltip from '@/components/InfoTooltip'
 import { useDemoMode } from '@/contexts/DemoModeContext'
 import { getMockReport } from '@/api/mockApi'
+import { useWalletStore } from '@/store/walletStore'
+import ValidateReportModal from '@/components/ValidateReportModal'
 
 export default function ReportDetail() {
   const { reportId } = useParams<{ reportId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { isDemoMode } = useDemoMode()
+  const { isDemoMode, demoWalletAddress } = useDemoMode()
+  const { address: walletAddress } = useWalletStore()
+  const [showValidateModal, setShowValidateModal] = useState(false)
+
+  // Determine effective wallet address (demo mode or real wallet)
+  const effectiveWalletAddress = isDemoMode ? demoWalletAddress : walletAddress
 
   const { data: report, isLoading } = useQuery({
     queryKey: ['report', reportId, isDemoMode],
@@ -27,17 +34,8 @@ export default function ReportDetail() {
     enabled: !!reportId,
   })
 
-  const validateMutation = useMutation({
-    mutationFn: () => apiClient.validateReport(reportId!),
-    onSuccess: () => {
-      toast.success('Report validated successfully')
-      queryClient.invalidateQueries({ queryKey: ['report', reportId] })
-      queryClient.invalidateQueries({ queryKey: ['reports'] })
-    },
-    onError: (error: Error) => {
-      toast.error(error.message)
-    },
-  })
+  // Check if current user is the reporter (hide validate button if true)
+  const isReporter = report && effectiveWalletAddress && report.reporter_address === effectiveWalletAddress
 
   const updateStatusMutation = useMutation({
     mutationFn: ({ status, verifiedBy }: { status: string; verifiedBy?: string }) =>
@@ -78,6 +76,40 @@ export default function ReportDetail() {
   })
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const voteMutation = useMutation({
+    mutationFn: async ({ vote, stakeAmount }: { vote: 'confirm' | 'reject'; stakeAmount: number }) => {
+      if (isDemoMode) {
+        // In demo mode, simulate voting
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        return { success: true, message: 'Demo vote submitted' }
+      }
+      if (!effectiveWalletAddress) throw new Error('Wallet not connected')
+      return apiClient.submitValidatorVote(reportId!, vote, effectiveWalletAddress, stakeAmount)
+    },
+    onSuccess: () => {
+      if (isDemoMode) {
+        toast.success('Demo Mode: Vote submitted successfully (simulated)')
+      } else {
+        toast.success('Vote submitted successfully')
+      }
+      queryClient.invalidateQueries({ queryKey: ['report', reportId] })
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
+      setShowValidateModal(false)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message)
+    },
+  })
+
+  const handleVoteSubmitted = async (vote: 'confirm' | 'reject', stakeAmount: number) => {
+    try {
+      await voteMutation.mutateAsync({ vote, stakeAmount })
+      // Success is handled in mutation onSuccess
+    } catch (error) {
+      // Error is handled in mutation onError
+    }
+  }
 
   if (isLoading) {
     return (
@@ -229,23 +261,16 @@ export default function ReportDetail() {
       <div className="card">
         <h2 className="text-xl font-semibold text-text mb-4">Actions</h2>
         <div className="flex flex-wrap gap-4">
-          <button
-            onClick={() => validateMutation.mutate()}
-            disabled={validateMutation.isPending}
-            className="btn btn-secondary"
-          >
-            {validateMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Validating...
-              </>
-            ) : (
-              <>
-                <Shield size={18} />
-                Validate Report
-              </>
-            )}
-          </button>
+          {/* Show Validate button only if user is NOT the reporter and report is pending/under_review */}
+          {!isReporter && (report.status === 'pending' || report.status === 'under_review') && (
+            <button
+              onClick={() => setShowValidateModal(true)}
+              className="btn btn-primary"
+            >
+              <Shield size={18} />
+              Validate Report
+            </button>
+          )}
           {report.status !== 'verified' && (
             <button
               onClick={() => updateStatusMutation.mutate({ status: 'verified' })}
@@ -314,6 +339,16 @@ export default function ReportDetail() {
           </p>
         )}
       </div>
+
+      {/* Validate Report Modal */}
+      {report && (
+        <ValidateReportModal
+          report={report}
+          isOpen={showValidateModal}
+          onClose={() => setShowValidateModal(false)}
+          onVoteSubmitted={handleVoteSubmitted}
+        />
+      )}
     </div>
   )
 }
