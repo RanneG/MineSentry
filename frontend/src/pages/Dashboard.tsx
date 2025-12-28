@@ -4,23 +4,39 @@ import { Activity, FileText, Shield, TrendingUp, AlertCircle, RefreshCw } from '
 import { apiClient } from '@/api/client'
 import { format } from 'date-fns'
 import StatsCard from '@/components/StatsCard'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { mockSystemStats, mockSystemStatus, getMockReports } from '@/api/mockApi'
 
 export default function Dashboard() {
+  const { isDemoMode } = useDemoMode()
+
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['stats'],
-    queryFn: () => apiClient.getStats(),
-    refetchInterval: 30000,
+    queryKey: ['stats', isDemoMode],
+    queryFn: () => {
+      if (isDemoMode) return Promise.resolve(mockSystemStats)
+      return apiClient.getStats()
+    },
+    refetchInterval: isDemoMode ? false : 30000,
   })
 
   const { data: systemStatus, isLoading: statusLoading } = useQuery({
-    queryKey: ['systemStatus'],
-    queryFn: () => apiClient.getSystemStatus(),
-    refetchInterval: 30000,
+    queryKey: ['systemStatus', isDemoMode],
+    queryFn: () => {
+      if (isDemoMode) return Promise.resolve(mockSystemStatus)
+      return apiClient.getSystemStatus()
+    },
+    refetchInterval: isDemoMode ? false : 30000,
   })
 
   const { data: reports, isLoading: reportsLoading } = useQuery({
-    queryKey: ['reports', 'recent'],
-    queryFn: () => apiClient.getReports({ limit: 5 }),
+    queryKey: ['reports', 'recent', isDemoMode],
+    queryFn: () => {
+      if (isDemoMode) {
+        const mockReports = getMockReports()
+        return Promise.resolve(mockReports.slice(0, 5))
+      }
+      return apiClient.getReports({ limit: 5 })
+    },
   })
 
   const getStatusBadge = (status: string) => {

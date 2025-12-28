@@ -1,20 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { Trophy, TrendingUp, Award } from 'lucide-react'
 import { apiClient } from '@/api/client'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { getMockLeaderboard, type LeaderboardEntry } from '@/api/mockApi'
 
 export default function Leaderboard() {
+  const { isDemoMode } = useDemoMode()
+
   const { data: stats } = useQuery({
-    queryKey: ['stats'],
+    queryKey: ['stats', isDemoMode],
     queryFn: () => apiClient.getStats(),
   })
 
-  // TODO: Implement actual leaderboard data from API
-  // This is a placeholder structure
-  const leaderboardData = [
-    { rank: 1, address: 'bc1q...abc123', reports: 15, verified: 12, totalBounty: 0.0125 },
-    { rank: 2, address: 'bc1q...def456', reports: 10, verified: 8, totalBounty: 0.008 },
-    { rank: 3, address: 'bc1q...ghi789', reports: 8, verified: 6, totalBounty: 0.005 },
-  ]
+  // Get leaderboard data - use mock data in demo mode
+  const leaderboardData: LeaderboardEntry[] = isDemoMode ? getMockLeaderboard() : []
 
   return (
     <div className="space-y-6">
@@ -59,40 +58,52 @@ export default function Leaderboard() {
       {/* Leaderboard Table */}
       <div className="card">
         <h2 className="text-xl font-semibold text-text mb-4">Top Reporters</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Rank</th>
-                <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Address</th>
-                <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Reports</th>
-                <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Verified</th>
-                <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Total Bounty</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboardData.map((entry) => (
-                <tr key={entry.rank} className="border-b border-border hover:bg-surface-light transition-colors">
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      {entry.rank <= 3 && <Trophy className={`w-5 h-5 ${entry.rank === 1 ? 'text-yellow-400' : entry.rank === 2 ? 'text-gray-300' : 'text-amber-600'}`} />}
-                      <span className="text-text font-semibold">#{entry.rank}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="text-text font-mono text-sm">{entry.address}</span>
-                  </td>
-                  <td className="py-4 px-4 text-text">{entry.reports}</td>
-                  <td className="py-4 px-4 text-text">{entry.verified}</td>
-                  <td className="py-4 px-4 text-primary font-semibold">{entry.totalBounty.toFixed(4)} BTC</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4 text-center text-text-secondary text-sm">
-          <p>Leaderboard data coming soon. API endpoint for reporter statistics will be added.</p>
-        </div>
+        {leaderboardData.length > 0 ? (
+          <>
+            {isDemoMode && (
+              <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/50 rounded-lg">
+                <p className="text-blue-400 text-sm">Demo Mode: Showing mock leaderboard data</p>
+              </div>
+            )}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Rank</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Address</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Reports</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Verified</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Total Bounty</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leaderboardData.map((entry) => (
+                    <tr key={entry.rank} className="border-b border-border hover:bg-surface-light transition-colors">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          {entry.rank <= 3 && <Trophy className={`w-5 h-5 ${entry.rank === 1 ? 'text-yellow-400' : entry.rank === 2 ? 'text-gray-300' : 'text-amber-600'}`} />}
+                          <span className="text-text font-semibold">#{entry.rank}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-text font-mono text-sm">{entry.address}</span>
+                      </td>
+                      <td className="py-4 px-4 text-text">{entry.reports}</td>
+                      <td className="py-4 px-4 text-text">{entry.verified}</td>
+                      <td className="py-4 px-4 text-primary font-semibold">{entry.totalBounty.toFixed(4)} BTC</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <Trophy className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-50" />
+            <p className="text-text-secondary text-lg mb-2">Leaderboard coming soon</p>
+            <p className="text-text-muted text-sm">Leaderboard data will be available once the API endpoint is implemented.</p>
+          </div>
+        )}
       </div>
     </div>
   )

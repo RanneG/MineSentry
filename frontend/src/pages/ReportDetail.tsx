@@ -6,15 +6,24 @@ import { format } from 'date-fns'
 import { toast } from '@/components/ui/Toaster'
 import { useState } from 'react'
 import InfoTooltip from '@/components/InfoTooltip'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { getMockReport } from '@/api/mockApi'
 
 export default function ReportDetail() {
   const { reportId } = useParams<{ reportId: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { isDemoMode } = useDemoMode()
 
   const { data: report, isLoading } = useQuery({
-    queryKey: ['report', reportId],
-    queryFn: () => apiClient.getReport(reportId!),
+    queryKey: ['report', reportId, isDemoMode],
+    queryFn: () => {
+      if (isDemoMode && reportId) {
+        const mockReport = getMockReport(reportId)
+        if (mockReport) return Promise.resolve(mockReport)
+      }
+      return apiClient.getReport(reportId!)
+    },
     enabled: !!reportId,
   })
 
@@ -45,9 +54,20 @@ export default function ReportDetail() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: () => apiClient.deleteReport(reportId!),
+    mutationFn: async () => {
+      if (isDemoMode) {
+        // In demo mode, just simulate deletion
+        await new Promise((resolve) => setTimeout(resolve, 300))
+        return { success: true }
+      }
+      return apiClient.deleteReport(reportId!)
+    },
     onSuccess: () => {
-      toast.success('Report deleted successfully')
+      if (isDemoMode) {
+        toast.success('Demo Mode: Report would be deleted (not actually deleted)')
+      } else {
+        toast.success('Report deleted successfully')
+      }
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       navigate('/reports')

@@ -3,8 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Shield, Loader2 } from 'lucide-react'
 import { apiClient } from '@/api/client'
-import { useWalletStore } from '@/store/walletStore'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { submitMockReport } from '@/api/mockApi'
 import { toast } from '@/components/ui/Toaster'
+import { useWalletStore } from '@/store/walletStore'
 import InfoTooltip from '@/components/InfoTooltip'
 import type { EvidenceType } from '@/types'
 
@@ -21,10 +23,14 @@ const EVIDENCE_TYPES: { value: EvidenceType; label: string; description: string 
 export default function SubmitReport() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { isDemoMode, demoWalletAddress } = useDemoMode()
   const { address: walletAddress, connected } = useWalletStore()
+  
+  // Use demo wallet address when in demo mode
+  const effectiveWalletAddress = isDemoMode ? demoWalletAddress : (walletAddress || '')
 
   const [formData, setFormData] = useState({
-    reporter_address: walletAddress || '',
+    reporter_address: effectiveWalletAddress,
     pool_address: '',
     pool_name: '',
     block_height: '',
@@ -35,12 +41,31 @@ export default function SubmitReport() {
   })
 
   const mutation = useMutation({
-    mutationFn: (data: typeof formData) => {
-      const transactionIds = formData.transaction_ids
+    mutationFn: async (data: typeof formData) => {
+      // In demo mode, use mock API
+      if (isDemoMode) {
+        // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        const transactionIds = data.transaction_ids
+          .split(',')
+          .map((id) => id.trim())
+          .filter((id) => id.length > 0)
+        return submitMockReport({
+          reporter_address: data.reporter_address,
+          pool_address: data.pool_address,
+          pool_name: data.pool_name,
+          block_height: parseInt(data.block_height),
+          evidence_type: data.evidence_type,
+          transaction_ids: transactionIds.length > 0 ? transactionIds : undefined,
+          block_hash: data.block_hash,
+          description: data.description,
+        })
+      }
+      // Real API call
+      const transactionIds = data.transaction_ids
         .split(',')
         .map((id) => id.trim())
         .filter((id) => id.length > 0)
-
       return apiClient.submitReport({
         reporter_address: data.reporter_address,
         pool_address: data.pool_address,
@@ -53,7 +78,11 @@ export default function SubmitReport() {
       })
     },
     onSuccess: (data) => {
-      toast.success(`Report submitted successfully! ID: ${data.report_id.substring(0, 8)}...`)
+      if (isDemoMode) {
+        toast.success('Demo Mode: Report submitted (not saved to database)')
+      } else {
+        toast.success(`Report submitted successfully! ID: ${data.report_id.substring(0, 8)}...`)
+      }
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       navigate(`/reports/${data.report_id}`)
@@ -96,14 +125,19 @@ export default function SubmitReport() {
               className="input"
               placeholder="bc1q..."
               required
-              disabled={connected && !!walletAddress}
+              disabled={connected && !!walletAddress && !isDemoMode}
             />
-            {connected && walletAddress && (
+            {isDemoMode && (
+              <p className="text-text-muted text-xs mt-1">
+                Demo Mode: Using demo wallet address
+              </p>
+            )}
+            {!isDemoMode && connected && walletAddress && (
               <p className="text-text-muted text-xs mt-1">
                 Using connected wallet address. Disconnect to use a different address.
               </p>
             )}
-            {!connected && (
+            {!isDemoMode && !connected && (
               <p className="text-text-muted text-xs mt-1">
                 Connect your wallet to auto-fill, or enter your Bitcoin address manually.
               </p>

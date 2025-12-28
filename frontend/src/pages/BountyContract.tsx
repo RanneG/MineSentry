@@ -4,21 +4,30 @@ import { apiClient } from '@/api/client'
 import { format } from 'date-fns'
 import { toast } from '@/components/ui/Toaster'
 import { useWalletStore } from '@/store/walletStore'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { mockBountyContract } from '@/api/mockApi'
 import BountyContractSetup from '@/components/BountyContractSetup'
 
 export default function BountyContract() {
   const queryClient = useQueryClient()
   const { address } = useWalletStore()
+  const { isDemoMode } = useDemoMode()
 
   const { data: contractStatus, isLoading: statusLoading, refetch: refetchContract } = useQuery({
-    queryKey: ['bountyContract'],
-    queryFn: () => apiClient.getBountyContractStatus(),
+    queryKey: ['bountyContract', isDemoMode],
+    queryFn: () => {
+      if (isDemoMode) return Promise.resolve(mockBountyContract)
+      return apiClient.getBountyContractStatus()
+    },
     retry: false, // Don't retry on 404
   })
 
   const { data: paymentQueue, isLoading: queueLoading } = useQuery({
-    queryKey: ['bountyPayments'],
-    queryFn: () => apiClient.getBountyPaymentQueue(),
+    queryKey: ['bountyPayments', isDemoMode],
+    queryFn: () => {
+      if (isDemoMode) return Promise.resolve([])
+      return apiClient.getBountyPaymentQueue()
+    },
     enabled: !!contractStatus, // Only fetch if contract is configured
   })
 

@@ -8,23 +8,28 @@ import BountyContract from './pages/BountyContract'
 import Leaderboard from './pages/Leaderboard'
 import SystemStatus from './pages/SystemStatus'
 import { Toaster } from '@/components/ui/Toaster'
+import { DemoModeProvider } from './contexts/DemoModeContext'
+import DemoModeToggle from './components/DemoModeToggle'
 
 function App() {
   return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/reports/:reportId" element={<ReportDetail />} />
-          <Route path="/submit" element={<SubmitReport />} />
-          <Route path="/bounty" element={<BountyContract />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/status" element={<SystemStatus />} />
-        </Routes>
-      </Layout>
-      <Toaster />
-    </Router>
+    <DemoModeProvider>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/reports/:reportId" element={<ReportDetail />} />
+            <Route path="/submit" element={<SubmitReport />} />
+            <Route path="/bounty" element={<BountyContract />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/status" element={<SystemStatus />} />
+          </Routes>
+        </Layout>
+        <Toaster />
+        <DemoModeToggle />
+      </Router>
+    </DemoModeProvider>
   )
 }
 

@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { Activity, Database, Shield, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import { apiClient } from '@/api/client'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { mockSystemStatus } from '@/api/mockApi'
 
 export default function SystemStatus() {
+  const { isDemoMode } = useDemoMode()
+  
   const { data: status, isLoading, refetch } = useQuery({
-    queryKey: ['systemStatus'],
-    queryFn: () => apiClient.getSystemStatus(),
-    refetchInterval: 30000,
+    queryKey: ['systemStatus', isDemoMode],
+    queryFn: () => {
+      if (isDemoMode) return Promise.resolve(mockSystemStatus)
+      return apiClient.getSystemStatus()
+    },
+    refetchInterval: isDemoMode ? false : 30000,
   })
 
   if (isLoading) {

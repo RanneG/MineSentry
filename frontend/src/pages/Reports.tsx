@@ -6,6 +6,8 @@ import { apiClient } from '@/api/client'
 import { format } from 'date-fns'
 import { toast } from '@/components/ui/Toaster'
 import type { ReportStatus } from '@/types'
+import { useDemoMode } from '@/contexts/DemoModeContext'
+import { getMockReports } from '@/api/mockApi'
 
 const STATUS_FILTERS: { value: ReportStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -27,9 +29,20 @@ export default function Reports() {
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (reportId: string) => apiClient.deleteReport(reportId),
+    mutationFn: async (reportId: string) => {
+      if (isDemoMode) {
+        // In demo mode, just simulate deletion
+        await new Promise((resolve) => setTimeout(resolve, 300))
+        return { success: true }
+      }
+      return apiClient.deleteReport(reportId)
+    },
     onSuccess: () => {
-      toast.success('Report deleted successfully')
+      if (isDemoMode) {
+        toast.success('Demo Mode: Report would be deleted (not actually deleted)')
+      } else {
+        toast.success('Report deleted successfully')
+      }
       queryClient.invalidateQueries({ queryKey: ['reports'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       setDeletingId(null)
