@@ -1,37 +1,85 @@
 # MineSentry Documentation
 
-This directory contains all documentation for the MineSentry project.
+Welcome to the MineSentry documentation directory. This guide helps you navigate all available documentation.
 
-## Directory Structure
+## 📚 Documentation Structure
 
-- **`setup/`** - Setup and installation guides
-- **`guides/`** - User and development guides
-- Root level - Project summaries and technical documentation
+### Setup Guides (`setup/`)
 
-## Quick Links
+Essential guides for getting started with MineSentry:
 
-### Setup Guides
-- [Quick Start Guide](setup/QUICKSTART.md) - Get started quickly
-- [Bitcoin RPC Setup](setup/BITCOIN_RPC_SETUP.md) - Configure Bitcoin Core RPC
-- [Bounty Contract Setup](setup/BOUNTY_SETUP_GUIDE.md) - Set up the bounty contract
-- [Testnet Setup](setup/TESTNET_SETUP.md) - Configure for testnet testing
-- [Configuration Summary](setup/CONFIG_SUMMARY.md) - Configuration reference
+- **[QUICKSTART.md](setup/QUICKSTART.md)** - Quick start guide for new users
+- **[BITCOIN_RPC_SETUP.md](setup/BITCOIN_RPC_SETUP.md)** - Bitcoin RPC configuration guide
+- **[CONFIG_SUMMARY.md](setup/CONFIG_SUMMARY.md)** - Configuration file reference
+- **[TESTNET_SETUP.md](setup/TESTNET_SETUP.md)** - Testnet setup and testing guide
+- **[BOUNTY_SETUP_GUIDE.md](setup/BOUNTY_SETUP_GUIDE.md)** - Bounty contract initialization guide
 
-### User Guides
-- [Charms Integration](guides/CHARMS_INTEGRATION.md) - Charms framework integration
-- [Spell Documentation](guides/SPELL_DOCUMENTATION.md) - Censorship detection spells
-- [Detection Methods](guides/DETECTION_METHODS.md) - All detection methods reference
-- [Troubleshooting](guides/TROUBLESHOOTING.md) - Common issues and solutions
+### Developer Guides (`guides/`)
 
-### Technical Documentation
-- [Censorship Spell Summary](CENSORSHIP_SPELL_CREATED.md) - Censorship detection overview
-- [Enhanced Spell Summary](ENHANCED_SPELL_SUMMARY.md) - Enhanced detection methods
-- [Bounty Contract Summary](BOUNTY_CONTRACT_SUMMARY.md) - Bounty contract documentation
-- [Integration Summary](INTEGRATION_SUMMARY.md) - System integration overview
-- [Wallet System Summary](WALLET_SYSTEM_SUMMARY.md) - Wallet integration documentation
+Technical documentation for developers:
 
-## Additional Resources
+- **[CHARMS_INTEGRATION.md](guides/CHARMS_INTEGRATION.md)** - Charms framework integration guide
+- **[SPELL_DOCUMENTATION.md](guides/SPELL_DOCUMENTATION.md)** - Spell system documentation
+- **[TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md)** - Common issues and solutions
 
-- [GitHub Setup Guide](GITHUB_SETUP.md) - How to upload to GitHub
-- [Security Verification](PRE_UPLOAD_CHECKLIST.md) - Pre-upload security checklist
+### Summary Documents
 
+High-level summaries and implementation details:
+
+- **[INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)** - System integration overview
+- **[BOUNTY_CONTRACT_SUMMARY.md](BOUNTY_CONTRACT_SUMMARY.md)** - Bounty contract system summary
+- **[ENHANCED_SPELL_SUMMARY.md](ENHANCED_SPELL_SUMMARY.md)** - Enhanced detection spells summary
+- **[CENSORSHIP_SPELL_CREATED.md](CENSORSHIP_SPELL_CREATED.md)** - Censorship detection spell documentation
+- **[WALLET_SYSTEM_SUMMARY.md](WALLET_SYSTEM_SUMMARY.md)** - Wallet integration system summary
+
+### Verification & Setup
+
+- **[GITHUB_SETUP.md](GITHUB_SETUP.md)** - GitHub repository setup guide
+- **[PRE_UPLOAD_CHECKLIST.md](PRE_UPLOAD_CHECKLIST.md)** - Pre-upload security checklist
+- **[SECURITY_VERIFICATION_REPORT.md](SECURITY_VERIFICATION_REPORT.md)** - Security audit report
+- **[VERIFICATION_COMPLETE.md](VERIFICATION_COMPLETE.md)** - Verification completion report
+- **[TESTNET_TRIAL_SUMMARY.md](TESTNET_TRIAL_SUMMARY.md)** - Testnet trial results
+- **[DELETE_ENDPOINT_FIX.md](DELETE_ENDPOINT_FIX.md)** - API endpoint fix documentation
+
+## 🚀 Quick Navigation
+
+### For New Users
+1. Start with [QUICKSTART.md](setup/QUICKSTART.md)
+2. Configure Bitcoin RPC: [BITCOIN_RPC_SETUP.md](setup/BITCOIN_RPC_SETUP.md)
+3. Set up testnet: [TESTNET_SETUP.md](setup/TESTNET_SETUP.md)
+
+### For Developers
+1. Read [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)
+2. Study spell system: [SPELL_DOCUMENTATION.md](guides/SPELL_DOCUMENTATION.md)
+3. Review [CHARMS_INTEGRATION.md](guides/CHARMS_INTEGRATION.md)
+
+### For Setup/Deployment
+1. Check [PRE_UPLOAD_CHECKLIST.md](PRE_UPLOAD_CHECKLIST.md)
+2. Review [SECURITY_VERIFICATION_REPORT.md](SECURITY_VERIFICATION_REPORT.md)
+3. Follow [BOUNTY_SETUP_GUIDE.md](setup/BOUNTY_SETUP_GUIDE.md)
+
+## 📖 Main Documentation
+
+For the most up-to-date documentation, see:
+- **[Main README.md](../README.md)** - Project overview and features
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Contribution guidelines
+- **[SECURITY.md](../SECURITY.md)** - Security policy and best practices
+- **[Frontend README.md](../frontend/README.md)** - Frontend-specific documentation
+- **[Spells README.md](../spells/README.md)** - Detection spells documentation
+
+## 🔍 Finding Specific Information
+
+- **Bitcoin RPC Issues**: [TROUBLESHOOTING.md](guides/TROUBLESHOOTING.md)
+- **Spell Development**: [SPELL_DOCUMENTATION.md](guides/SPELL_DOCUMENTATION.md)
+- **Bounty Contract**: [BOUNTY_CONTRACT_SUMMARY.md](BOUNTY_CONTRACT_SUMMARY.md)
+- **Wallet Integration**: [WALLET_SYSTEM_SUMMARY.md](WALLET_SYSTEM_SUMMARY.md)
+- **Security Concerns**: [SECURITY.md](../SECURITY.md)
+
+## 📝 Note
+
+Some documentation files may be historical or reference-specific features. For current functionality, always refer to the main README.md and the latest code.
+
+---
+
+**Last Updated**: 2024
+**Maintained by**: MineSentry Development Team

@@ -16,14 +16,17 @@ MineSentry uses advanced detection algorithms (Charms-based spells) to identify 
 ## ✨ Features
 
 - **🔍 10 Detection Methods**: Comprehensive censorship detection using multiple analysis techniques
-- **💰 Bounty System**: Decentralized multi-signature contract for reward distribution
+- **💰 Bounty System**: Decentralized multi-signature contract for reward distribution with public transparency dashboard
 - **📊 Real-time Monitoring**: Live dashboard showing pool behavior and system statistics
 - **🔐 Multi-Wallet Support**: Connect with Hiro, Xverse, Leather, UniSat, or Nostr wallets
-- **📝 Report Management**: Submit, validate, and track censorship reports
-- **🎯 Evidence-Based Validation**: Automated validation using Charms spells
-- **📈 Leaderboards**: Track top reporters and validators
+- **📝 Report Management**: Submit, validate, and track censorship reports with detailed evidence review
+- **🎯 Evidence-Based Validation**: Validator voting system with Bitcoin staking for confirm/reject decisions
+- **📈 Leaderboards**: Track top reporters and top bounty hunters with earnings statistics
 - **🌐 Network Detection**: Automatic mainnet/testnet detection
 - **🔒 Signature Verification**: Wallet-based authentication
+- **🎮 Demo Mode**: Isolated testing environment with mock data for exploring the system
+- **🔍 Transparency Dashboard**: Public read-only view of bounty contract treasury, governance, and payout history
+- **✅ Interactive Validation**: Modal-based report validation with collapsible evidence review sections
 
 ## 🏗️ Architecture
 
@@ -54,8 +57,8 @@ graph TB
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/minesentry.git
-   cd minesentry
+   git clone https://github.com/RanneG/MineSentry.git
+   cd MineSentry
    ```
 
 2. **Set up Python backend**
@@ -130,24 +133,36 @@ Reports receive a confidence score (0.0-1.0) based on:
 MineSentry/
 ├── frontend/              # React + TypeScript frontend
 │   ├── src/
-│   │   ├── components/    # React components
-│   │   ├── pages/         # Page components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── lib/           # Utility libraries
-│   │   └── api/           # API client
+│   │   ├── components/    # React components (DemoModeToggle, ValidateReportModal, etc.)
+│   │   ├── pages/         # Page components (Dashboard, Reports, BountyContract, etc.)
+│   │   ├── contexts/      # React contexts (DemoModeContext)
+│   │   ├── hooks/         # Custom React hooks (useWallet)
+│   │   ├── store/         # Zustand state management
+│   │   ├── lib/           # Utility libraries (wallet providers)
+│   │   ├── api/           # API client and mock data
+│   │   └── types/         # TypeScript type definitions
 │   └── package.json
 ├── spells/                # Charms-based detection spells
-│   ├── censorship_detection.py
-│   └── bounty_contract.py
-├── api.py                 # FastAPI application
+│   ├── censorship_detection.py  # Censorship detection logic
+│   └── bounty_contract.py       # Bounty contract implementation
+├── docs/                  # Documentation directory
+│   ├── setup/             # Setup guides
+│   └── guides/            # Developer guides
+├── scripts/               # Utility scripts
+│   └── setup.sh           # Setup automation
+├── api.py                 # FastAPI REST API
 ├── integration_bridge.py  # System integration layer
 ├── bitcoin_rpc.py         # Bitcoin RPC client
 ├── database.py            # Database models and setup
 ├── models.py              # Data models
 ├── validation.py          # Report validation logic
 ├── reward_system.py       # Reward calculation
+├── setup_bounty_contract.py  # Bounty contract setup script
+├── init_db.py             # Database initialization
 ├── requirements.txt       # Python dependencies
-└── README.md
+├── README.md              # This file
+├── CONTRIBUTING.md        # Contribution guidelines
+└── SECURITY.md            # Security policy
 ```
 
 ## 🎮 Usage
@@ -163,21 +178,25 @@ MineSentry/
    - Transaction IDs
 4. Submit and wait for validation
 
-### Setting Up Bounty Contract
+### Viewing Bounty Contract Transparency
 
 1. Navigate to "Bounty Contract" page
-2. If not configured, you'll see a setup form
-3. Add authorized signer addresses (minimum 2)
-4. Set minimum signatures required
-5. Initialize the contract
-6. Fund the contract with Bitcoin
+2. View the public transparency dashboard showing:
+   - Contract address and current balance
+   - Governance rules (signers and signature threshold)
+   - Complete payout history with block explorer links
+3. Click any address or transaction ID to verify on the blockchain
+4. Note: Contract setup is done via backend scripts for security (see `setup_bounty_contract.py`)
 
 ### Validating Reports
 
 1. View reports in the "Reports" page
 2. Click on a report to see details
-3. If you're an authorized signer, approve payments
-4. Once enough approvals, execute the payment
+3. Click "Validate Report" button (hidden for report submitter)
+4. Review evidence and report details in the validation modal
+5. Vote "Confirm" or "Reject" with a Bitcoin stake amount
+6. Submit your vote to contribute to the validation decision
+7. Once reports are validated, they enter the payment queue for authorized signers
 
 ## 🛠️ Development
 
@@ -238,8 +257,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Documentation**: See `/docs` folder
 - **API Documentation**: http://localhost:8000/docs (when running)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/minesentry/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/minesentry/discussions)
+- **Repository**: [GitHub](https://github.com/RanneG/MineSentry)
+- **Issues**: [GitHub Issues](https://github.com/RanneG/MineSentry/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/RanneG/MineSentry/discussions)
 
 ## 📞 Support
 

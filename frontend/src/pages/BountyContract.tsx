@@ -65,6 +65,12 @@ export default function BountyContract() {
       <div>
         <h1 className="text-3xl font-bold text-text">Bounty Treasury</h1>
         <p className="text-text-secondary mt-1">Public transparency dashboard</p>
+        <p className="text-text-muted text-sm mt-3 max-w-3xl">
+          This dashboard provides full transparency into the bounty contract that funds rewards for verified reports. 
+          We display the contract address, balance, governance rules, and complete payout history so you can independently 
+          verify all transactions on the blockchain. This ensures trust through verifiability—you don't have to trust us, 
+          you can verify everything yourself using the block explorer links provided.
+        </p>
       </div>
 
       {/* Treasury Status */}

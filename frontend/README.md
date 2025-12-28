@@ -17,13 +17,15 @@ Modern, responsive web application for the MineSentry Bitcoin Mining Pool Monito
 ## Features
 
 - 🎯 **Dashboard**: Overview of system status, statistics, and recent reports
-- 📝 **Report Submission**: Submit censorship reports with wallet integration
+- 📝 **Report Submission**: Submit censorship reports with wallet integration and confidence scoring
 - 📊 **Reports Browser**: View, filter, and search all reports
-- 🔍 **Report Details**: Detailed view of individual reports
-- 💰 **Bounty Contract**: Manage bounty payments and approvals
-- 📈 **Leaderboard**: Top reporters and statistics
-- ⚙️ **System Status**: Real-time system health monitoring
+- 🔍 **Report Details**: Detailed view of individual reports with validation controls
+- 💰 **Bounty Contract Transparency**: Public read-only dashboard showing contract treasury, governance, and payout history
+- ✅ **Report Validation**: Interactive modal for validators to vote (Confirm/Reject) with Bitcoin staking
+- 📈 **Leaderboard**: Top reporters and top bounty hunters with earnings statistics
+- ⚙️ **System Status**: Real-time system health monitoring with detailed component status
 - 🔌 **Wallet Integration**: Connect multiple Bitcoin wallets (Hiro, Xverse, Leather, UniSat, Nostr)
+- 🎮 **Demo Mode**: Isolated testing environment with mock data for exploring the system workflow
 
 ## Getting Started
 
@@ -74,21 +76,32 @@ frontend/
 ├── src/
 │   ├── components/       # Reusable components
 │   │   ├── ui/          # UI components (Toaster, etc.)
+│   │   ├── DemoModeToggle.tsx    # Demo mode toggle button
+│   │   ├── InfoTooltip.tsx       # Information tooltip component
 │   │   ├── Layout.tsx
 │   │   ├── Navbar.tsx
+│   │   ├── ValidateReportModal.tsx  # Report validation modal
 │   │   └── WalletConnect.tsx
 │   ├── pages/           # Page components
 │   │   ├── Dashboard.tsx
 │   │   ├── Reports.tsx
 │   │   ├── SubmitReport.tsx
 │   │   ├── ReportDetail.tsx
-│   │   ├── BountyContract.tsx
-│   │   ├── Leaderboard.tsx
+│   │   ├── BountyContract.tsx    # Transparency dashboard (read-only)
+│   │   ├── Leaderboard.tsx       # Top reporters + top bounty hunters
 │   │   └── SystemStatus.tsx
+│   ├── contexts/        # React contexts
+│   │   └── DemoModeContext.tsx   # Demo mode state management
+│   ├── hooks/           # Custom React hooks
+│   │   └── useWallet.ts
 │   ├── store/           # State management (Zustand)
 │   │   └── walletStore.ts
 │   ├── api/             # API client
-│   │   └── client.ts
+│   │   ├── client.ts
+│   │   └── mockApi.ts   # Mock data for demo mode
+│   ├── lib/             # Utility libraries
+│   │   ├── walletAuth.ts
+│   │   └── walletProviders.ts
 │   ├── types/           # TypeScript types
 │   │   └── index.ts
 │   ├── App.tsx
