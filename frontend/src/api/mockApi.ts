@@ -103,7 +103,7 @@ export const mockSystemStatus: SystemStatus = {
   },
 }
 
-// Mock bounty contract
+// Mock bounty contract (transparency dashboard format)
 export const mockBountyContract: BountyContract = {
   contract_id: 'demo-contract-001',
   state: 'active',
@@ -118,7 +118,24 @@ export const mockBountyContract: BountyContract = {
     'tb1qsigner3333333333abcdefghijklmnopqrstuv',
   ],
   pending_payments: 3, // 3 pending payments (demo-payment-001, 003, 005)
-  total_payments: 5, // Total of 5 mock payments
+  total_payments: 1, // Only paid payments count
+  // Transparency dashboard fields
+  contract_address: 'tb1qsigner1111111111abcdefghijklmnopqrstuv', // Use first signer as demo contract address
+  balance_btc: 0.00755,
+  balance_sats: 755000,
+  network: 'Testnet',
+  network_type: 'test',
+  signature_threshold: '2 of 3',
+  payout_history: [
+    {
+      date: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
+      report_id: 'demo-report-004',
+      recipient: 'tb1qreporter4567890abcdefghijklmnopqrstuvwxyz0',
+      amount_btc: 0.00025,
+      amount_sats: 25000,
+      txid: 'demo-tx-1234567890123456789012345678901234567890123456789012345678901234',
+    },
+  ],
 }
 
 // Mock API functions

@@ -38,6 +38,21 @@ export interface BountyContract {
   authorized_signers: string[]
   pending_payments: number
   total_payments: number
+  // Transparency dashboard fields
+  contract_address?: string
+  balance_btc?: number
+  balance_sats?: number
+  network?: string
+  network_type?: string
+  signature_threshold?: string
+  payout_history?: Array<{
+    date: string
+    report_id: string
+    recipient: string
+    amount_btc: number
+    amount_sats: number
+    txid: string
+  }>
 }
 
 export interface BountyPayment {

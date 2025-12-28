@@ -1,65 +1,36 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { TrendingUp, CheckCircle, Loader2 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { TrendingUp, ExternalLink, Shield } from 'lucide-react'
 import { apiClient } from '@/api/client'
 import { format } from 'date-fns'
-import { toast } from '@/components/ui/Toaster'
-import { useWalletStore } from '@/store/walletStore'
 import { useDemoMode } from '@/contexts/DemoModeContext'
-import { mockBountyContract, getMockBountyPayments } from '@/api/mockApi'
-import BountyContractSetup from '@/components/BountyContractSetup'
+import { mockBountyContract } from '@/api/mockApi'
+
+// Helper function to get block explorer URL
+function getBlockExplorerUrl(addressOrTxid: string, network?: string): string {
+  const isMainnet = network === 'main' || network === 'Mainnet'
+  const baseUrl = isMainnet ? 'https://mempool.space' : 'https://mempool.space/testnet'
+  
+  // If it looks like a transaction ID (64 hex chars), use tx endpoint
+  if (/^[a-fA-F0-9]{64}$/.test(addressOrTxid)) {
+    return `${baseUrl}/tx/${addressOrTxid}`
+  }
+  // Otherwise, treat as address
+  return `${baseUrl}/address/${addressOrTxid}`
+}
 
 export default function BountyContract() {
-  const queryClient = useQueryClient()
-  const { address } = useWalletStore()
   const { isDemoMode } = useDemoMode()
 
-  const { data: contractStatus, isLoading: statusLoading, refetch: refetchContract } = useQuery({
+  const { data: contractStatus, isLoading } = useQuery({
     queryKey: ['bountyContract', isDemoMode],
     queryFn: () => {
       if (isDemoMode) return Promise.resolve(mockBountyContract)
       return apiClient.getBountyContractStatus()
     },
-    retry: false, // Don't retry on 404
+    retry: false,
   })
 
-  const { data: paymentQueue, isLoading: queueLoading } = useQuery({
-    queryKey: ['bountyPayments', isDemoMode],
-    queryFn: () => {
-      if (isDemoMode) {
-        return Promise.resolve(getMockBountyPayments())
-      }
-      return apiClient.getBountyPaymentQueue()
-    },
-    enabled: !!contractStatus || isDemoMode, // Fetch if contract is configured or in demo mode
-  })
-
-  const approveMutation = useMutation({
-    mutationFn: ({ paymentId, signerAddress }: { paymentId: string; signerAddress: string }) =>
-      apiClient.approveBountyPayment(paymentId, signerAddress),
-    onSuccess: () => {
-      toast.success('Payment approved')
-      queryClient.invalidateQueries({ queryKey: ['bountyPayments'] })
-      queryClient.invalidateQueries({ queryKey: ['bountyContract'] })
-    },
-    onError: (error: Error) => {
-      toast.error(error.message)
-    },
-  })
-
-  const executeMutation = useMutation({
-    mutationFn: (paymentId: string) => apiClient.executeBountyPayment(paymentId),
-    onSuccess: () => {
-      toast.success('Payment executed successfully')
-      queryClient.invalidateQueries({ queryKey: ['bountyPayments'] })
-      queryClient.invalidateQueries({ queryKey: ['bountyContract'] })
-      queryClient.invalidateQueries({ queryKey: ['stats'] })
-    },
-    onError: (error: Error) => {
-      toast.error(error.message)
-    },
-  })
-
-  if (statusLoading || queueLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -67,176 +38,217 @@ export default function BountyContract() {
     )
   }
 
-  // Check if contract is not configured (404 error)
-  if (!statusLoading && !contractStatus) {
+  if (!contractStatus) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-text">Bounty Contract</h1>
-          <p className="text-text-secondary mt-1">Configure and manage bounty payments</p>
+          <h1 className="text-3xl font-bold text-text">Bounty Treasury</h1>
+          <p className="text-text-secondary mt-1">Public transparency dashboard</p>
         </div>
-        <BountyContractSetup onSetupComplete={() => {
-          refetchContract()
-          queryClient.invalidateQueries({ queryKey: ['bountyContract'] })
-        }} />
+        <div className="card text-center py-12">
+          <Shield className="w-16 h-16 mx-auto mb-4 text-text-muted opacity-50" />
+          <p className="text-text-secondary text-lg mb-2">Bounty Contract Not Configured</p>
+          <p className="text-text-muted text-sm">
+            The bounty contract has not been initialized. Contact the administrator for setup.
+          </p>
+        </div>
       </div>
     )
   }
 
-  // At this point, contractStatus must be defined (guaranteed by early return above)
-  if (!contractStatus) {
-    return null
-  }
+  const network = contractStatus.network || 'Unknown'
+  const payoutHistory = contractStatus.payout_history || []
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-text">Bounty Contract</h1>
-        <p className="text-text-secondary mt-1">Manage bounty payments and approvals</p>
+        <h1 className="text-3xl font-bold text-text">Bounty Treasury</h1>
+        <p className="text-text-secondary mt-1">Public transparency dashboard</p>
       </div>
 
-      {/* Contract Status */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="card">
-          <p className="text-text-secondary text-sm mb-1">Available Funds</p>
-          <p className="text-2xl font-bold text-text">
-            {(contractStatus.available_funds_sats / 100000000).toFixed(4)} BTC
-          </p>
-          <p className="text-text-muted text-xs mt-1">{contractStatus.available_funds_sats.toLocaleString()} sats</p>
-        </div>
-        <div className="card">
-          <p className="text-text-secondary text-sm mb-1">Total Paid</p>
-          <p className="text-2xl font-bold text-primary">
-            {(contractStatus.total_paid_sats / 100000000).toFixed(4)} BTC
-          </p>
-        </div>
-        <div className="card">
-          <p className="text-text-secondary text-sm mb-1">Pending Payments</p>
-          <p className="text-2xl font-bold text-text">{contractStatus.pending_payments}</p>
-        </div>
-        <div className="card">
-          <p className="text-text-secondary text-sm mb-1">Contract State</p>
-          <p className="text-xl font-semibold text-text capitalize">{contractStatus.state}</p>
-        </div>
-      </div>
-
-      {/* Payment Queue */}
+      {/* Treasury Status */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-text">Payment Queue</h2>
-          <span className="status-badge status-pending">{paymentQueue?.length || 0} pending</span>
+        <div className="flex items-center gap-3 mb-6">
+          <TrendingUp className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold text-text">Treasury Status</h2>
         </div>
-
-        {!paymentQueue || paymentQueue.length === 0 ? (
-          <div className="text-center py-8 text-text-secondary">
-            <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No pending payments</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <p className="text-text-secondary text-sm mb-2">Contract Address</p>
+            <div className="flex items-center gap-2">
+              <p className="text-text font-mono text-sm break-all">
+                {contractStatus.contract_address || 'Not configured'}
+              </p>
+              {contractStatus.contract_address && contractStatus.contract_address !== 'Not configured' && (
+                <a
+                  href={getBlockExplorerUrl(contractStatus.contract_address, contractStatus.network_type)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary-hover flex-shrink-0"
+                  title="View on block explorer"
+                >
+                  <ExternalLink size={16} />
+                </a>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {paymentQueue.map((payment) => (
-              <div key={payment.payment_id} className="bg-surface-light p-4 rounded-lg border border-border">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-2">
-                      <span className="font-mono text-sm text-text-secondary">{payment.payment_id.substring(0, 12)}...</span>
-                      <span className={`status-badge status-${payment.status}`}>{payment.status}</span>
-                      <span className="text-text-secondary text-sm">{payment.approvals} approvals</span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                      <div>
-                        <p className="text-text-secondary text-xs mb-1">Amount</p>
-                        <p className="text-text font-semibold">{payment.amount_btc.toFixed(4)} BTC</p>
-                      </div>
-                      <div>
-                        <p className="text-text-secondary text-xs mb-1">Recipient</p>
-                        <p className="text-text font-mono text-xs break-all">{payment.recipient_address.substring(0, 12)}...</p>
-                      </div>
-                      <div>
-                        <p className="text-text-secondary text-xs mb-1">Report ID</p>
-                        <p className="text-text font-mono text-xs">{payment.report_id.substring(0, 8)}...</p>
-                      </div>
-                      <div>
-                        <p className="text-text-secondary text-xs mb-1">Created</p>
-                        <p className="text-text text-xs">{format(new Date(payment.created_at), 'MMM d, yyyy')}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 ml-4">
-                    {payment.status === 'approved' ? (
-                      <button
-                        onClick={() => executeMutation.mutate(payment.payment_id)}
-                        disabled={executeMutation.isPending}
-                        className="btn btn-primary text-sm"
-                      >
-                        {executeMutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Executing...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle size={16} />
-                            Execute Payment
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          if (!address) {
-                            toast.error('Please connect your wallet first')
-                            return
-                          }
-                          approveMutation.mutate({ paymentId: payment.payment_id, signerAddress: address })
-                        }}
-                        disabled={approveMutation.isPending || !address}
-                        className="btn btn-secondary text-sm"
-                      >
-                        {approveMutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Approving...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle size={16} />
-                            Approve
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div>
+            <p className="text-text-secondary text-sm mb-2">Current Balance</p>
+            <p className="text-2xl font-bold text-primary">
+              {contractStatus.balance_btc?.toFixed(4) || (contractStatus.available_funds_sats / 100000000).toFixed(4)} BTC
+            </p>
+            <p className="text-text-muted text-xs mt-1">
+              {contractStatus.balance_sats?.toLocaleString() || contractStatus.available_funds_sats.toLocaleString()} sats
+            </p>
           </div>
-        )}
+          <div>
+            <p className="text-text-secondary text-sm mb-2">Network</p>
+            <p className="text-text font-semibold text-lg">{network}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Contract Info */}
-      <div className="card bg-surface-light">
-        <h3 className="font-semibold text-text mb-3">Contract Information</h3>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      {/* Governance Rules */}
+      <div className="card">
+        <div className="flex items-center gap-3 mb-6">
+          <Shield className="w-6 h-6 text-primary" />
+          <h2 className="text-xl font-semibold text-text">Governance Rules</h2>
+        </div>
+        <div className="space-y-4">
           <div>
-            <p className="text-text-secondary">Min Signatures</p>
-            <p className="text-text font-semibold">{contractStatus.min_signatures}</p>
+            <p className="text-text-secondary text-sm mb-2">Required Signatures</p>
+            <p className="text-text font-semibold text-lg">
+              {contractStatus.signature_threshold || `${contractStatus.min_signatures} of ${contractStatus.authorized_signers.length}`}
+            </p>
+            <p className="text-text-muted text-xs mt-1">
+              At least {contractStatus.min_signatures} of {contractStatus.authorized_signers.length} authorized signers must approve payments
+            </p>
           </div>
           <div>
-            <p className="text-text-secondary">Authorized Signers</p>
-            <p className="text-text font-semibold">{contractStatus.authorized_signers.length}</p>
+            <p className="text-text-secondary text-sm mb-3">Authorized Signers</p>
+            <div className="space-y-2">
+              {contractStatus.authorized_signers.map((signer, index) => (
+                <div key={index} className="flex items-center gap-2 p-2 bg-surface-light rounded-lg">
+                  <span className="text-text-secondary text-sm w-6">{index + 1}.</span>
+                  <span className="text-text font-mono text-sm flex-1 break-all">{signer}</span>
+                  <a
+                    href={getBlockExplorerUrl(signer, contractStatus.network_type)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-primary-hover flex-shrink-0"
+                    title="View on block explorer"
+                  >
+                    <ExternalLink size={14} />
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Proof of Performance */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <TrendingUp className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-semibold text-text">Proof of Performance</h2>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div>
+            <p className="text-text-secondary text-sm mb-1">Total Bounties Paid</p>
+            <p className="text-2xl font-bold text-text">{contractStatus.total_payments}</p>
           </div>
           <div>
-            <p className="text-text-secondary">Total Payments</p>
-            <p className="text-text font-semibold">{contractStatus.total_payments}</p>
+            <p className="text-text-secondary text-sm mb-1">Total BTC Distributed</p>
+            <p className="text-2xl font-bold text-primary">
+              {(contractStatus.total_paid_sats / 100000000).toFixed(4)} BTC
+            </p>
           </div>
           <div>
-            <p className="text-text-secondary">Contract ID</p>
-            <p className="text-text font-mono text-xs">{contractStatus.contract_id}</p>
+            <p className="text-text-secondary text-sm mb-1">Pending Payments</p>
+            <p className="text-2xl font-bold text-text">{contractStatus.pending_payments}</p>
           </div>
+        </div>
+
+        {/* Payout History */}
+        <div>
+          <h3 className="text-lg font-semibold text-text mb-4">Recent Payout History</h3>
+          {payoutHistory.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Date</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Report ID</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Recipient</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Amount</th>
+                    <th className="text-left py-3 px-4 text-text-secondary text-sm font-medium">Transaction ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payoutHistory.map((payout, index) => (
+                    <tr key={index} className="border-b border-border hover:bg-surface-light transition-colors">
+                      <td className="py-3 px-4 text-text text-sm">
+                        {format(new Date(payout.date), 'MMM d, yyyy')}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-text font-mono text-sm">{payout.report_id.substring(0, 8)}...</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-text font-mono text-xs">
+                            {payout.recipient.substring(0, 12)}...{payout.recipient.substring(payout.recipient.length - 8)}
+                          </span>
+                          <a
+                            href={getBlockExplorerUrl(payout.recipient, contractStatus.network_type)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:text-primary-hover"
+                            title="View address on block explorer"
+                          >
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-primary font-semibold">
+                        {payout.amount_btc.toFixed(4)} BTC
+                      </td>
+                      <td className="py-3 px-4">
+                        {payout.txid ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-text font-mono text-xs">
+                              {payout.txid.substring(0, 12)}...{payout.txid.substring(payout.txid.length - 8)}
+                            </span>
+                            <a
+                              href={getBlockExplorerUrl(payout.txid, contractStatus.network_type)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-primary-hover"
+                              title="View transaction on block explorer"
+                            >
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-text-muted text-xs">Pending</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-text-secondary">
+              <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No payout history yet</p>
+              <p className="text-text-muted text-sm mt-1">Completed bounty payments will appear here</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
-

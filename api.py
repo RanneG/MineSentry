@@ -527,30 +527,101 @@ class BountyContractSetupRequest(BaseModel):
     min_signatures: int = Field(2, ge=1, description="Minimum signatures required for payments")
 
 
-@app.post("/bounty/contract/setup")
-async def setup_bounty_contract(request: BountyContractSetupRequest):
-    """Initialize/setup the bounty contract"""
-    from integration_bridge import initialize_bounty_contract
-    
-    result = initialize_bounty_contract(
-        authorized_signers=request.authorized_signers,
-        min_signatures=request.min_signatures
-    )
-    
-    if not result.get('success'):
-        raise HTTPException(status_code=400, detail=result.get('error', 'Unknown error'))
-    
-    return result
+# Contract setup endpoint removed for security - use setup_bounty_contract.py script instead
+# @app.post("/bounty/contract/setup")
+# async def setup_bounty_contract(request: BountyContractSetupRequest):
+#     """Initialize/setup the bounty contract - ADMIN ONLY"""
+#     # This endpoint should not be publicly accessible
+#     # Contract setup should only be done via backend script: setup_bounty_contract.py
+#     raise HTTPException(status_code=403, detail="Contract setup is only available via backend scripts for security")
 
 
 @app.get("/bounty/contract/status")
 async def get_bounty_contract_status():
-    """Get bounty contract status"""
+    """
+    Get bounty contract transparency status (read-only)
+    
+    Returns contract information for public transparency dashboard:
+    - Contract address and balance
+    - Governance rules (signers and threshold)
+    - Payout history
+    """
+    import os
     integration = get_integration()
     if not integration.bounty_contract:
         raise HTTPException(status_code=404, detail="Bounty contract not initialized")
     
-    return integration.bounty_contract.get_contract_state()
+    try:
+        contract_state = integration.bounty_contract.get_contract_state()
+        payment_history = integration.bounty_contract.get_payment_history()
+        
+        # Get Bitcoin network info
+        try:
+            bitcoin_info = integration.bitcoin_rpc.get_blockchain_info()
+            network = bitcoin_info.get('chain', 'unknown')
+        except Exception:
+            network = 'unknown'
+        network_display = 'Mainnet' if network == 'main' else 'Testnet' if network == 'test' else network.capitalize()
+        
+        # Contract address can be configured via environment variable
+        # In production, this would be the actual multi-sig address
+        contract_address = os.getenv('BOUNTY_CONTRACT_ADDRESS', None)
+        if not contract_address:
+            # For demo/development, use first signer address as placeholder
+            authorized_signers = contract_state.get('authorized_signers', [])
+            if authorized_signers and len(authorized_signers) > 0:
+                contract_address = authorized_signers[0]
+            else:
+                contract_address = 'Address not configured'
+        
+        # Use available funds from contract state as balance
+        # In a real implementation, this would query the blockchain address balance
+        balance_sats = contract_state['available_funds_sats']
+        balance_btc = balance_sats / 100000000
+        
+        # Format payout history for transparency (last 20 payouts, sorted by date)
+        payout_history = []
+        for payment in sorted(payment_history, key=lambda x: x.get('paid_at') or x.get('created_at', ''), reverse=True)[:20]:
+            payout_history.append({
+                'date': payment.get('paid_at') or payment.get('created_at', ''),
+                'report_id': payment['report_id'],
+                'recipient': payment['recipient_address'],
+                'amount_btc': payment['amount_btc'],
+                'amount_sats': payment['amount_sats'],
+                'txid': payment.get('txid', ''),
+            })
+        
+        return {
+            # Treasury Status
+            'contract_address': contract_address,
+            'balance_btc': balance_btc,
+            'balance_sats': balance_sats,
+            'network': network_display,
+            'network_type': network,
+            
+            # Contract State
+            'contract_id': contract_state['contract_id'],
+            'state': contract_state['state'],
+            'available_funds_sats': contract_state['available_funds_sats'],
+            'total_funded_sats': contract_state['total_funded_sats'],
+            'total_paid_sats': contract_state['total_paid_sats'],
+            
+            # Governance Rules
+            'min_signatures': contract_state['min_signatures'],
+            'authorized_signers': contract_state['authorized_signers'],
+            'signature_threshold': f"{contract_state['min_signatures']} of {len(contract_state['authorized_signers'])}",
+            
+            # Performance Metrics
+            'total_payments': contract_state['total_payments'],
+            'pending_payments': contract_state['pending_payments'],
+            'payout_history': payout_history,
+            
+            # Timestamps
+            'created_at': contract_state['created_at'],
+            'updated_at': contract_state['updated_at'],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching contract status: {str(e)}")
 
 
 @app.get("/bounty/payments/queue")

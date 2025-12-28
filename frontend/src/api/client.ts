@@ -118,6 +118,9 @@ export const apiClient = {
     }
   },
 
+  // Note: Setup endpoint removed - contract setup should only be done via backend scripts
+  // async setupBountyContract() - REMOVED FOR SECURITY
+
   async getBountyPaymentQueue(): Promise<BountyPayment[]> {
     const { data } = await api.get('/bounty/payments/queue')
     return data
@@ -145,14 +148,6 @@ export const apiClient = {
 
   async executeBountyPayment(paymentId: string) {
     const { data } = await api.post(`/bounty/payments/${paymentId}/execute`)
-    return data
-  },
-
-  async setupBountyContract(authorizedSigners: string[], minSignatures: number) {
-    const { data } = await api.post('/bounty/contract/setup', {
-      authorized_signers: authorizedSigners,
-      min_signatures: minSignatures,
-    })
     return data
   },
 
