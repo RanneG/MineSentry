@@ -127,6 +127,23 @@ Reports receive a confidence score (0.0-1.0) based on:
 - **Evidence Score**: 0.05 per evidence point (max 0.4)
 - **Critical Method Bonus**: 0.1 per critical method (max 0.3)
 
+## 🧙‍♂️ Charms SDK Integration
+
+This project integrates with the **Charms SDK** to create programmable Bitcoin transactions for bounty payments. See the [`/charms_integration/`](./charms_integration/) directory for the actual Charms SDK code that powers our conditional payment system.
+
+**Key integration points:**
+- **Conditional Bounty Payouts**: Payments only execute when 2-of-3 validators approve
+- **Time-based Refunds**: Automatic refunds if not approved within 24 hours (144 blocks)
+- **Oracle Integration**: Connected to our report validation system
+
+The Charms SDK integration enables:
+1. **Trustless Payments**: Conditional transactions that only execute when censorship is confirmed
+2. **Multi-Signature Governance**: 2-of-3 validator approval required for bounty payouts
+3. **Automatic Refunds**: Timeout conditions ensure funds are returned if validation stalls
+4. **Programmable Conditions**: Oracle-based triggers connect detection results to payment execution
+
+For details on how this connects to the full MineSentry system, see [`charms_integration/README.md`](./charms_integration/README.md).
+
 ## 📁 Project Structure
 
 ```
@@ -142,6 +159,11 @@ MineSentry/
 │   │   ├── api/           # API client and mock data
 │   │   └── types/         # TypeScript type definitions
 │   └── package.json
+├── charms_integration/    # Charms SDK integration (Rust)
+│   ├── src/
+│   │   └── main.rs        # Charms SDK integration code
+│   ├── Cargo.toml         # Rust dependencies
+│   └── README.md          # Integration documentation
 ├── spells/                # Charms-based detection spells
 │   ├── censorship_detection.py  # Censorship detection logic
 │   └── bounty_contract.py       # Bounty contract implementation

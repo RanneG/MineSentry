@@ -1,0 +1,9 @@
+[package]
+name = "minesentry-charms-integration"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+charms-protocol-sdk = "0.1.0"  # ACTUAL CHARMS SDK DEPENDENCY
+tokio = { version = "1.0", features = ["full"] }
+
