@@ -536,6 +536,52 @@ class MineSentryIntegration:
             - details: Dict with method-specific results
             - message: str
         """
+        # TEMPORARY DEMO MODE - Enable via environment variable for testing
+        # Set DETECTION_DEMO_MODE=true in .env to enable
+        demo_mode = os.getenv('DETECTION_DEMO_MODE', 'false').lower() == 'true'
+        
+        if demo_mode:
+            # Return sample detection results for testing UI without Bitcoin Core
+            return {
+                'is_censored': True,
+                'confidence_score': 0.75,
+                'evidence_count': 3,
+                'missing_transactions': [
+                    'abc123xyz789def456uvw012ghi345jkl678mno',
+                    'def456uvw012ghi345jkl678mno901pqr234stu'
+                ],
+                'excluded_fee_total': 0.00015,
+                'detection_methods': [
+                    'missing_transactions',
+                    'fee_rate_analysis',
+                    'block_fullness_analysis'
+                ],
+                'details': {
+                    'missing_transactions': {
+                        'censored': True,
+                        'missing': [
+                            'abc123xyz789def456uvw012ghi345jkl678mno',
+                            'def456uvw012ghi345jkl678mno901pqr234stu'
+                        ],
+                        'total_suspected': 2,
+                        'found_in_block': 0
+                    },
+                    'fee_analysis': {
+                        'censored': True,
+                        'mempool_higher_fee_count': 3,
+                        'excluded_fees': 0.00015
+                    },
+                    'block_fullness_analysis': {
+                        'censored': True,
+                        'fullness_ratio': 0.65,
+                        'evidence_points': 1
+                    }
+                },
+                'message': 'Censorship detected: 2 missing transactions, 3 high-fee transactions excluded, block only 65% full',
+                'error': False,
+                'error_type': None
+            }
+        
         try:
             # Run the censorship detection spell
             detection_result = self.censorship_spell.detect_censorship(
