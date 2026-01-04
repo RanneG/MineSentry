@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: minesentry-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python start_server.py
+    envVars:
+      - key: DETECTION_DEMO_MODE
+        value: true
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: PORT
+        value: 8000
+    healthCheckPath: /health
+

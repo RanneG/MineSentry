@@ -4,15 +4,29 @@ This guide covers deploying MineSentry to production for hackathon demonstration
 
 ## Deployment Architecture
 
-- **Backend**: Railway (Python FastAPI)
+- **Backend**: Railway (Python FastAPI) - **OR Render (recommended if Railway Limited Trial)**
 - **Frontend**: Vercel (React/Vite)
 - **Database**: SQLite (ephemeral - resets on restart) or PostgreSQL (recommended for production)
+
+## ⚠️ Important: Railway Trial Types
+
+Railway offers two trial types:
+- **Full Trial**: Allows code deployments ✅
+- **Limited Trial**: Only allows databases/buckets, NOT code deployments ❌
+
+**If you have a Limited Trial**, use **Render** instead (see `DEPLOY_RENDER.md`).
 
 ## Prerequisites
 
 - GitHub repository: https://github.com/RanneG/MineSentry
-- Railway account: https://railway.app
-- Vercel account: https://vercel.com
+- **Backend Platform**: Railway (https://railway.app) **OR Render (https://render.com)**
+- **Frontend Platform**: Vercel (https://vercel.com)
+
+## Quick Start
+
+**Have Railway Full Trial?** → Follow this guide (Railway deployment)
+
+**Have Railway Limited Trial?** → See [`DEPLOY_RENDER.md`](./DEPLOY_RENDER.md) for Render deployment
 
 ## Phase 1: Deploy Backend to Railway
 
