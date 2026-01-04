@@ -135,6 +135,22 @@ Or keep `CORS_ORIGINS=*` for development/demo purposes.
 
 ## Troubleshooting
 
+### "Failed to get private network endpoint" in Railway
+
+**Problem**: Railway shows "Failed to get private network endpoint" in Settings > Networking.
+
+**Solution**: This is **NOT a critical error** and won't prevent deployment:
+- Private networking is a Railway premium feature
+- Your **public URL will still work** (e.g., `https://xxx.up.railway.app`)
+- You can ignore this error and proceed with deployment
+- The public endpoint is what your frontend will use anyway
+
+To verify your deployment works:
+1. Check the "Deployments" tab - deployment should complete successfully
+2. Copy the **public URL** from Railway (not the private endpoint)
+3. Test the public URL: `https://your-service.up.railway.app/health`
+4. If that works, you're good to proceed with frontend deployment
+
 ### Frontend shows connection error
 
 **Solution**:
