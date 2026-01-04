@@ -36,7 +36,8 @@ Since Railway's Limited Trial doesn't allow code deployments, we'll use **Render
 - **Branch**: `main`
 - **Root Directory**: Leave blank (uses root)
 - **Runtime**: `Python 3`
-- **Build Command**: `pip install -r requirements.txt`
+- **Python Version**: **IMPORTANT** - Click "Advanced" and set to `3.11.10` (Render defaults to 3.13 which causes build errors)
+- **Build Command**: `pip install --upgrade pip && pip install -r requirements.txt`
 - **Start Command**: `python start_server.py`
 
 **Environment Variables** (click "Advanced"):
