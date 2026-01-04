@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useWalletStore } from '@/store/walletStore'
-import { connectWallet, disconnectWallet, signMessage, checkInstalledWallets, WALLET_PROVIDERS, type WalletProvider } from '../lib/walletProviders'
+import { connectWallet, disconnectWallet, signMessage, checkInstalledWallets, WALLET_PROVIDERS, type WalletProvider } from "../lib/walletProviders"
 import { useDemoMode } from '@/contexts/DemoModeContext'
 
 export interface UseWalletReturn {
