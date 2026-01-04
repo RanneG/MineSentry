@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useWalletStore } from '@/store/walletStore'
-import { connectWallet, disconnectWallet, signMessage, checkInstalledWallets, WALLET_PROVIDERS } from '@/lib/walletProviders'
+import { connectWallet, disconnectWallet, signMessage, checkInstalledWallets, WALLET_PROVIDERS, type WalletProvider } from '@/lib/walletProviders'
 import { useDemoMode } from '@/contexts/DemoModeContext'
 
 export interface UseWalletReturn {
@@ -226,7 +226,7 @@ export function useWallet(): UseWalletReturn {
   }, [isDemoMode])
 
   // Get providers with installation status
-  const providers = WALLET_PROVIDERS.map(provider => ({
+  const providers = WALLET_PROVIDERS.map((provider: WalletProvider) => ({
     ...provider,
     installed: installedWallets[provider.id] ?? false,
   }))
