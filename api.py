@@ -11,6 +11,7 @@ from datetime import datetime
 from uuid import UUID
 from contextlib import asynccontextmanager
 import uvicorn
+import os
 
 from models import MiningPoolReport, EvidenceType, ReportStatus
 from database import Database
@@ -155,9 +156,13 @@ app = FastAPI(
 )
 
 # CORS middleware
+# Allow specific origins in production, or all for development
+cors_origins = os.getenv("CORS_ORIGINS", "*")
+if cors_origins != "*":
+    cors_origins = cors_origins.split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
