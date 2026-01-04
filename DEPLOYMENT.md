@@ -31,8 +31,18 @@ Railway will create a service. Configure it:
 **Settings:**
 - **Name**: `minesentry-backend`
 - **Root Directory**: `.` (root of repo)
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `python start_server.py`
+- Railway will auto-detect Python and use the `Procfile` or `railway.json`
+
+**Important**: If Railway doesn't auto-detect:
+- Go to Service Settings → Source
+- Ensure "Root Directory" is set to `.` (or leave blank)
+- Railway will use `Procfile` which runs `python start_server.py`
+
+**If "There is no active deployment":**
+1. Go to Railway dashboard → Your service
+2. Click "Deploy" button (or "Redeploy" if visible)
+3. Or trigger deployment by making a small commit to GitHub (Railway auto-deploys on push)
+4. Check the "Deployments" tab - it should start building
 
 **Environment Variables** (Go to "Variables" tab):
 
