@@ -245,3 +245,8 @@ $RECYCLE.BIN/
 /api.log
 /testnet_trial.log
 /deploy.log
+
+# Backups
+backups/*.backup
+backups/*.db
+!backups/README.md

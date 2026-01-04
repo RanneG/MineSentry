@@ -4,7 +4,7 @@
 
 Run this command to check everything:
 ```bash
-./test_detection_flow.sh
+./tests/test_detection_flow.sh
 ```
 
 ## 🚀 Step-by-Step Testing

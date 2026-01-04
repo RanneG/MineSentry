@@ -32,7 +32,7 @@ We want to see **real Bitcoin analysis results** in the "Validate Report" page, 
 **Open your terminal** and run this command:
 
 ```bash
-./test_detection_pipeline.sh
+./tests/test_detection_pipeline.sh
 ```
 
 **Or manually check:**
@@ -166,7 +166,7 @@ To see actual detection results:
 Use the provided script:
 
 ```bash
-./test_detection_pipeline.sh
+./tests/test_detection_pipeline.sh
 ```
 
 This will automatically check your latest report and show detection results.

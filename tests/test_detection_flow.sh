@@ -59,7 +59,7 @@ if python3 -c "from bitcoin_rpc import BitcoinRPC; rpc = BitcoinRPC(); rpc.get_b
 else
     echo "  ⚠️  Bitcoin RPC is NOT connected"
     echo "  → Detection will still work but return 0% confidence"
-    echo "  → To connect: Start Bitcoin Core (see TESTING_GUIDE.md)"
+    echo "  → To connect: Start Bitcoin Core (see docs/testing/TESTING_GUIDE.md)"
 fi
 echo ""
 
@@ -89,5 +89,5 @@ echo "3. Go to 'Submit Report'"
 echo "4. Submit a test report"
 echo "5. Click 'Validate Report' to see detection results"
 echo ""
-echo "For detailed testing instructions, see TESTING_GUIDE.md"
+echo "For detailed testing instructions, see docs/testing/TESTING_GUIDE.md"
 

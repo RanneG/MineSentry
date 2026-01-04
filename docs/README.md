@@ -14,6 +14,21 @@ Essential guides for getting started with MineSentry:
 - **[TESTNET_SETUP.md](setup/TESTNET_SETUP.md)** - Testnet setup and testing guide
 - **[BOUNTY_SETUP_GUIDE.md](setup/BOUNTY_SETUP_GUIDE.md)** - Bounty contract initialization guide
 
+### Testing Guides (`testing/`)
+
+Comprehensive testing documentation:
+
+- **[TESTING_GUIDE.md](testing/TESTING_GUIDE.md)** - Complete testing guide
+- **[QUICK_TEST_GUIDE.md](testing/QUICK_TEST_GUIDE.md)** - Quick testing instructions
+- **[TEST_DETECTION_PIPELINE.md](testing/TEST_DETECTION_PIPELINE.md)** - Detection pipeline testing guide
+
+### Deployment Guides (`deployment/`)
+
+Deployment and production setup:
+
+- **[DEPLOYMENT.md](deployment/DEPLOYMENT.md)** - Main deployment guide
+- **[DEPLOY_RENDER.md](deployment/DEPLOY_RENDER.md)** - Render backend deployment guide
+
 ### Developer Guides (`guides/`)
 
 Technical documentation for developers:
@@ -47,6 +62,7 @@ High-level summaries and implementation details:
 1. Start with [QUICKSTART.md](setup/QUICKSTART.md)
 2. Configure Bitcoin RPC: [BITCOIN_RPC_SETUP.md](setup/BITCOIN_RPC_SETUP.md)
 3. Set up testnet: [TESTNET_SETUP.md](setup/TESTNET_SETUP.md)
+4. Run tests: [QUICK_TEST_GUIDE.md](testing/QUICK_TEST_GUIDE.md)
 
 ### For Developers
 1. Read [INTEGRATION_SUMMARY.md](INTEGRATION_SUMMARY.md)
@@ -57,6 +73,7 @@ High-level summaries and implementation details:
 1. Check [PRE_UPLOAD_CHECKLIST.md](PRE_UPLOAD_CHECKLIST.md)
 2. Review [SECURITY_VERIFICATION_REPORT.md](SECURITY_VERIFICATION_REPORT.md)
 3. Follow [BOUNTY_SETUP_GUIDE.md](setup/BOUNTY_SETUP_GUIDE.md)
+4. Deploy to production: [DEPLOYMENT.md](deployment/DEPLOYMENT.md)
 
 ## 📖 Main Documentation
 

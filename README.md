@@ -167,19 +167,34 @@ MineSentry/
 ├── spells/                # Charms-based detection spells
 │   ├── censorship_detection.py  # Censorship detection logic
 │   └── bounty_contract.py       # Bounty contract implementation
+├── tests/                 # Test scripts
+│   ├── test_detection.py          # Direct detection pipeline tests
+│   ├── test_api_detection.py      # API-based tests
+│   ├── testnet_trial.py           # Testnet integration tests
+│   └── *.sh                        # Test shell scripts
+├── scripts/               # Utility and setup scripts
+│   ├── utilities/         # Development and maintenance scripts
+│   │   ├── setup_bounty_contract.py
+│   │   ├── fund_bounty_contract.py
+│   │   ├── create_test_reports.py
+│   │   ├── get_testnet_data.py
+│   │   └── *.sh                    # Helper shell scripts
+│   └── setup.sh           # Main setup automation
 ├── docs/                  # Documentation directory
 │   ├── setup/             # Setup guides
-│   └── guides/            # Developer guides
-├── scripts/               # Utility scripts
-│   └── setup.sh           # Setup automation
+│   ├── guides/            # Developer guides
+│   ├── testing/           # Testing documentation
+│   ├── deployment/        # Deployment guides
+│   └── README.md          # Documentation index
+├── backups/               # Backup files (git-ignored)
 ├── api.py                 # FastAPI REST API
+├── start_server.py        # Server startup script
 ├── integration_bridge.py  # System integration layer
 ├── bitcoin_rpc.py         # Bitcoin RPC client
 ├── database.py            # Database models and setup
 ├── models.py              # Data models
 ├── validation.py          # Report validation logic
 ├── reward_system.py       # Reward calculation
-├── setup_bounty_contract.py  # Bounty contract setup script
 ├── init_db.py             # Database initialization
 ├── requirements.txt       # Python dependencies
 ├── README.md              # This file
@@ -225,13 +240,27 @@ MineSentry/
 ### Running Tests
 
 ```bash
-# Backend tests
-pytest
+# Detection pipeline tests
+python tests/test_detection.py
+
+# API integration tests
+python tests/test_api_detection.py
+
+# Testnet integration
+python tests/testnet_trial.py
+
+# Quick test flow check
+./tests/test_detection_flow.sh
+
+# Full pipeline test
+./tests/test_detection_pipeline.sh
 
 # Frontend tests
 cd frontend
 npm test
 ```
+
+For detailed testing instructions, see [docs/testing/TESTING_GUIDE.md](docs/testing/TESTING_GUIDE.md).
 
 ### Code Style
 
