@@ -2,7 +2,6 @@ services:
   - type: web
     name: minesentry-backend
     runtime: python
-    pythonVersion: 3.11.10
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python start_server.py
     envVars:

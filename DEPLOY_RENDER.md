@@ -36,9 +36,14 @@ Since Railway's Limited Trial doesn't allow code deployments, we'll use **Render
 - **Branch**: `main`
 - **Root Directory**: Leave blank (uses root)
 - **Runtime**: `Python 3`
-- **Python Version**: **IMPORTANT** - Click "Advanced" and set to `3.11.10` (Render defaults to 3.13 which causes build errors)
 - **Build Command**: `pip install --upgrade pip && pip install -r requirements.txt`
 - **Start Command**: `python start_server.py`
+
+**Important - Python Version:**
+Render will automatically detect Python 3.11.10 from the `.python-version` and `runtime.txt` files in the repo. These files are now committed, so Render should use Python 3.11.10 automatically.
+
+If Render still uses Python 3.13, you can specify it in the build command:
+- Change **Build Command** to: `python3.11 -m pip install --upgrade pip && python3.11 -m pip install -r requirements.txt`
 
 **Environment Variables** (click "Advanced"):
 - `DETECTION_DEMO_MODE` = `true`
