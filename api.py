@@ -182,6 +182,9 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    # Check if demo mode is enabled (Bitcoin RPC not required)
+    demo_mode = os.getenv("DETECTION_DEMO_MODE", "false").lower() == "true"
+    
     try:
         btc_rpc = get_bitcoin_rpc()
         block_count = btc_rpc.get_block_count()
@@ -191,6 +194,15 @@ async def health_check():
             "block_height": block_count
         }
     except Exception as e:
+        # In demo mode, Bitcoin RPC is not required - service is still healthy
+        if demo_mode:
+            return {
+                "status": "healthy",
+                "bitcoin_node_connected": False,
+                "demo_mode": True,
+                "message": "Service running in demo mode (Bitcoin RPC not required)"
+            }
+        # In production mode, lack of Bitcoin RPC means degraded status
         return {
             "status": "degraded",
             "bitcoin_node_connected": False,
