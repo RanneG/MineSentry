@@ -1,0 +1,9 @@
+# Vercel ignore file
+# This ensures Vercel only builds from frontend directory
+node_modules
+.env
+.env.local
+dist
+build
+*.log
+
