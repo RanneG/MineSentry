@@ -1,10 +1,12 @@
 # MineSentry Charms SDK Integration
 
-This directory contains the **actual Charms SDK integration** that powers MineSentry's decentralized bounty payment system.
+This directory contains the **Charms SDK integration demonstration** that shows how MineSentry would use Charms to power its decentralized bounty payment system.
+
+**Note**: This currently uses a mock implementation since `charms-protocol-sdk` is not yet published to crates.io. The code demonstrates the exact integration pattern that would be used when the actual SDK is available.
 
 ## What This Code Demonstrates
 
-This is not a mockup or simulation. This is **real Charms SDK code** that:
+This code demonstrates the **exact integration pattern** that MineSentry would use with Charms SDK:
 
 1. **Initializes the Charms client** for Bitcoin testnet
 
@@ -36,14 +38,26 @@ cd charms_integration
 cargo run
 ```
 
+**Expected Output:**
+```
+=== MineSentry Charms SDK Integration ===
+✅ Charms SDK initialized successfully
+📝 Created MineSentry bounty conditions
+💰 Bounty Transaction Template Created
+🔗 Conditional UTXO Created
+🚀 Charms SDK Integration Complete!
+```
+
 ## For Hackathon Judges
 
-This code satisfies the "SDK First" requirement by:
+This code demonstrates the "SDK First" approach by:
 
-- ✅ Importing the actual `charms-protocol-sdk` crate
-- ✅ Using the `CharmsClient` struct from the SDK
-- ✅ Creating real `Condition` objects for Bitcoin transactions
-- ✅ Demonstrating how MineSentry's bounty system is built on Charms
+- **Defining the exact integration pattern** that would be used with charms-protocol-sdk
+- **Demonstrating CharmsClient usage** for conditional Bitcoin transactions
+- **Showing Condition objects** for programmable transaction logic
+- **Proving the concept** of how MineSentry's bounty system would integrate with Charms
 
-The full MineSentry system (UI + detection + validation) uses this Charms backend to make bounty payments programmable, trustless, and automated.
+**Note**: When `charms-protocol-sdk` becomes available, the mock implementation can be easily replaced with the actual SDK by changing the dependency in `Cargo.toml` and updating the imports.
+
+The full MineSentry system (UI + detection + validation) is designed to use this Charms integration to make bounty payments programmable, trustless, and automated.
 
