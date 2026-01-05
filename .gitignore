@@ -250,3 +250,5 @@ $RECYCLE.BIN/
 backups/*.backup
 backups/*.db
 !backups/README.md
+target/
+Cargo.lock
